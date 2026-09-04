@@ -125,11 +125,13 @@
       let e1 = edges[e][0]; //idx
       let u1 = projectedVertices[ e1 ].u; 
       let v1 = canvas.height - projectedVertices[ e1 ].v;  //TO DO- explain why did I do this?
+      // This was done because the height of a point in the website goes up in numerical value as you go down the page so to place it in the right stop you have to subtract the projected vertice value from the the canvas height
 
       //second vertex
       let e2 = edges[e][1]; //idx
       let u2 = projectedVertices[ e2 ].u;
       let v2 = canvas.height - projectedVertices[ e2 ].v;  //TO DO- explain why did I do this?
+      // This was done because the height of a point in the website goes up in numerical value as you go down the page so to place it in the right stop you have to subtract the projected vertice value from the the canvas height
 
       drawLine(u1, v1, u2, v2);
     }
@@ -161,25 +163,25 @@
        switch (event.code) {
         case "ArrowUp":
           //****TO DO: Change camera z position a go closer
-          camera.y+=0.1;
+          camera.z+=0.1;
           console.log("Up arrow pressed");
           draw();
           break;
         case "ArrowDown":
           //****TO DO: Change camera z position go further away
-          camera.y-=0.1;
+          camera.z-=0.1;
           console.log("Down arrow pressed");
           draw();
           break;
         case "ArrowLeft":
           //****TO DO: Change camera x position move left
-          camera.x+=0.1;
+          camera.x-=0.1;
           console.log("Left arrow pressed");
           draw();
           break;
         case "ArrowRight":
           //****TO DO: Change camera x position move right
-          camera.x-=0.1;
+          camera.x+=0.1;
           console.log("Right arrow pressed");
           draw();
           break;
