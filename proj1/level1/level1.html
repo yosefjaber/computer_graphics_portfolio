@@ -43,12 +43,9 @@
   const ctx = canvas.getContext("2d");
   const limit = 1
 
-  //an array of objects
-  //    to access the first 'x' coordinate you could type vertices[0].x
   let vertices = [  
   ]
 
-  // an array of the indics for the two vertices in each edge
   let edges = [
   ]
 
@@ -172,41 +169,38 @@
     ctx.fillStyle = "#050510";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    //loop through the edges
-    //  find the newly computed projected vertices - 2 per edge
-    //  draw the line
-    for(let e = 0; e < edges.length; e++){
+    for (obj of scene.objs){
+      for(let e = 0; e < obj.edges.length; e++) {
+        let v1 = obj.vertices[obj.edges[e][0]]
+        let v2 = obj.vertices[obj.edges[e][1]]
 
-      let v1 = vertices[edges[e][0]]
-      let v2 = vertices[edges[e][1]]
+        let cam1 = { x: v1.x - camera.x, y: v1.y - camera.y, z: v1.z - camera.z }
+        let cam2 = { x: v2.x - camera.x, y: v2.y - camera.y, z: v2.z - camera.z }
 
-      // Instantly convert to cam relative and do all math from there
-      let cam1 = { x: v1.x - camera.x, y: v1.y - camera.y, z: v1.z - camera.z }
-      let cam2 = { x: v2.x - camera.x, y: v2.y - camera.y, z: v2.z - camera.z }
+        let vert1_in_front = cam1.z > limit
+        let vert2_in_front = cam2.z > limit
 
-      let vert1_in_front = cam1.z > limit
-      let vert2_in_front = cam2.z > limit
+        // Both vertices are behind --> dont render it
+        if(!vert1_in_front && !vert2_in_front) continue;
 
-      // Both vertices are behind --> dont render it
-      if(!vert1_in_front && !vert2_in_front) continue;
+        // If one is in front and the other behind we need to move the one behind in front of the camera in a way that doesn't look goofy
+        if(vert1_in_front && !vert2_in_front) {
+          cam2 = planeIntersect(cam1, cam2)
+        }
+        if(!vert1_in_front && vert2_in_front) {
+          cam1 = planeIntersect(cam2, cam1)
+        }
 
-      // If one is in front and the other behind we need to move the one behind in front of the camera in a way that doesn't look goofy
-      if(vert1_in_front && !vert2_in_front) {
-        cam2 = planeIntersect(cam1, cam2)
+        let p1 = {}
+        p1.u = (cam1.x/cam1.z) * canvas.width + canvas.width / 2
+        p1.v = (cam1.y/cam1.z) * canvas.height + canvas.height / 2
+
+        let p2 = {}
+        p2.u = (cam2.x/cam2.z) * canvas.width + canvas.width / 2
+        p2.v = (cam2.y/cam2.z) * canvas.height + canvas.height / 2
+
+        drawLine(p1.u, canvas.height - p1.v, p2.u, canvas.height - p2.v, colors[e])
       }
-      if(!vert1_in_front && vert2_in_front) {
-        cam1 = planeIntersect(cam2, cam1)
-      }
-
-      let p1 = {}
-      p1.u = (cam1.x/cam1.z) * canvas.width + canvas.width / 2
-      p1.v = (cam1.y/cam1.z) * canvas.height + canvas.height / 2
-
-      let p2 = {}
-      p2.u = (cam2.x/cam2.z) * canvas.width + canvas.width / 2
-      p2.v = (cam2.y/cam2.z) * canvas.height + canvas.height / 2
-
-      drawLine(p1.u, canvas.height - p1.v, p2.u, canvas.height - p2.v, colors[e])
     }
   }
 
@@ -277,6 +271,18 @@
       
       }
     });
+
+  var intervalID = window.setInterval(drive, 20);
+
+  function drive() {
+    camera.z+=0.1;
+    for(v of car.vertices) {
+      v.z += 0.1  
+    }
+    draw();
+  }
+
+    
 
   function resizeCanvas() {
     canvas.width = window.innerWidth;
