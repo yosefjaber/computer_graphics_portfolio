@@ -55,6 +55,9 @@
   let colors = [
   ]
 
+  let scales = [
+  ]
+
 
   let camera = {x: 0, y: 5, z: -10};
 
@@ -86,7 +89,8 @@
         [2,6],
         [3,7],
     ],
-    "color": "blue"
+    "color": "blue",
+    "scale": 1
   }
 
   let plane = {
@@ -122,12 +126,21 @@
         [4,8],
         [5,9],
     ],
-    "color": "white"
+    "color": "white",
+    "scale": 1
   }
 
   let scene = {
     objs: [plane, car],
     offset: [{x:0,y:0,z:0}, {x:-.5,y:0,z:.5}]
+  }
+
+  for(let i = 0; i < 100; i++) {
+    let car_clone = structuredClone(car)
+    car_clone.color = "red"
+    scene.objs.push(car_clone)
+
+    scene.offset.push({x:-2.5,y:0,z:20.5+(i*10)})
   }
 
   let vertexOffset = vertices.length;
@@ -140,14 +153,13 @@
     color = scene.objs[i].color
 
     for (const v of obj.vertices) {
-      vertices.push({x: v.x + offset.x, y: v.y + offset.y, z: v.z + offset.z})
+      vertices.push({x: (v.x * obj.scale) + offset.x, y: (v.y * obj.scale) + offset.y, z: (v.z * obj.scale) + offset.z})
     }
 
     for (const e of obj.edges) {
         edges.push([e[0] + vertexOffset, e[1] + vertexOffset])
         colors.push(obj.color)
     }
-
 
     vertexOffset = vertices.length
   }
