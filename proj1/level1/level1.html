@@ -43,19 +43,6 @@
   const ctx = canvas.getContext("2d");
   const limit = 1
 
-  let vertices = [  
-  ]
-
-  let edges = [
-  ]
-
-  let colors = [
-  ]
-
-  let scales = [
-  ]
-
-
   let camera = {x: 0, y: 5, z: -10};
 
   let car = {
@@ -140,28 +127,6 @@
     scene.offset.push({x:-2.5,y:0,z:20.5+(i*10)})
   }
 
-  let vertexOffset = vertices.length;
-
-  let edgeOffset = 0
-
-  for (let i = 0; i < scene.objs.length; i++) {
-    obj = scene.objs[i]
-    offset = scene.offset[i]
-    color = scene.objs[i].color
-
-    for (const v of obj.vertices) {
-      vertices.push({x: (v.x * obj.scale) + offset.x, y: (v.y * obj.scale) + offset.y, z: (v.z * obj.scale) + offset.z})
-    }
-
-    for (const e of obj.edges) {
-        edges.push([e[0] + vertexOffset, e[1] + vertexOffset])
-        colors.push(obj.color)
-    }
-
-    vertexOffset = vertices.length
-  }
-
-
   function draw(){
 
     //here we set up and clear the canvas, every draw frame
@@ -169,10 +134,14 @@
     ctx.fillStyle = "#050510";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+
+    let offsetIndex = 0
     for (obj of scene.objs){
+      let offset = scene.offset[offsetIndex]
+      console.log(offset, offsetIndex)
       for(let e = 0; e < obj.edges.length; e++) {
-        let v1 = obj.vertices[obj.edges[e][0]]
-        let v2 = obj.vertices[obj.edges[e][1]]
+        let v1 = {x: obj.vertices[obj.edges[e][0]].x + offset.x, y: obj.vertices[obj.edges[e][0]].y + offset.y, z: obj.vertices[obj.edges[e][0]].z + offset.z}
+        let v2 = {x: obj.vertices[obj.edges[e][1]].x + offset.x, y: obj.vertices[obj.edges[e][1]].y + offset.y, z: obj.vertices[obj.edges[e][1]].z + offset.z}
 
         let cam1 = { x: v1.x - camera.x, y: v1.y - camera.y, z: v1.z - camera.z }
         let cam2 = { x: v2.x - camera.x, y: v2.y - camera.y, z: v2.z - camera.z }
@@ -199,8 +168,9 @@
         p2.u = (cam2.x/cam2.z) * canvas.width + canvas.width / 2
         p2.v = (cam2.y/cam2.z) * canvas.height + canvas.height / 2
 
-        drawLine(p1.u, canvas.height - p1.v, p2.u, canvas.height - p2.v, colors[e])
+        drawLine(p1.u, canvas.height - p1.v, p2.u, canvas.height - p2.v, obj.color)
       }
+      offsetIndex+=1
     }
   }
 
@@ -251,12 +221,18 @@
         case "ArrowLeft":
           //****TO DO: Change camera x position move left
           camera.x-=0.1;
+          for(v of car.vertices) {
+            v.x -= 0.1  
+          }
           console.log("Left arrow pressed");
           draw();
           break;
         case "ArrowRight":
           //****TO DO: Change camera x position move right
           camera.x+=0.1;
+          for(v of car.vertices) {
+            v.x += 0.1  
+          }
           console.log("Right arrow pressed");
           draw();
           break;
