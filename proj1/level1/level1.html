@@ -46,11 +46,14 @@
   //an array of objects
   //    to access the first 'x' coordinate you could type vertices[0].x
   let vertices = [  
-  ];
+  ]
 
   // an array of the indics for the two vertices in each edge
   let edges = [
-  ];
+  ]
+
+  let colors = [
+  ]
 
 
   let camera = {x: 0, y: 5, z: -10};
@@ -82,25 +85,26 @@
         [1,5],
         [2,6],
         [3,7],
-    ]
+    ],
+    "color": "blue"
   }
 
   let plane = {
     "vertices": [
-        {"x": -50, "y": 0, "z": 0},
-        {"x": -50, "y": 0, "z": 100},
-        {"x": 50, "y": 0, "z": 0},
-        {"x": 50, "y": 0, "z": 100},
+        {"x": -500, "y": 0, "z": 0},
+        {"x": -500, "y": 0, "z": 2000},
+        {"x": 500, "y": 0, "z": 0},
+        {"x": 500, "y": 0, "z": 2000},
 
         {"x": 1, "y": 0, "z": 0},
         {"x": 3, "y": 0, "z": 0},
         {"x": -1, "y": 0, "z": 0},
         {"x": -3, "y": 0, "z": 0},
 
-        {"x": 1, "y": 0, "z": 100},
-        {"x": 3, "y": 0, "z": 100},
-        {"x": -1, "y": 0, "z": 100},
-        {"x": -3, "y": 0, "z": 100},
+        {"x": 1, "y": 0, "z": 2000},
+        {"x": 3, "y": 0, "z": 2000},
+        {"x": -1, "y": 0, "z": 2000},
+        {"x": -3, "y": 0, "z": 2000},
     ],
     "edges": [
         [0,1],
@@ -117,7 +121,8 @@
         [6, 10],
         [4,8],
         [5,9],
-    ]
+    ],
+    "color": "white"
   }
 
   let scene = {
@@ -132,6 +137,7 @@
   for (let i = 0; i < scene.objs.length; i++) {
     obj = scene.objs[i]
     offset = scene.offset[i]
+    color = scene.objs[i].color
 
     for (const v of obj.vertices) {
       vertices.push({x: v.x + offset.x, y: v.y + offset.y, z: v.z + offset.z})
@@ -139,7 +145,10 @@
 
     for (const e of obj.edges) {
         edges.push([e[0] + vertexOffset, e[1] + vertexOffset])
+        colors.push(obj.color)
     }
+
+
     vertexOffset = vertices.length
   }
 
@@ -185,7 +194,7 @@
       p2.u = (cam2.x/cam2.z) * canvas.width + canvas.width / 2
       p2.v = (cam2.y/cam2.z) * canvas.height + canvas.height / 2
 
-      drawLine(p1.u, canvas.height - p1.v, p2.u, canvas.height - p2.v)
+      drawLine(p1.u, canvas.height - p1.v, p2.u, canvas.height - p2.v, colors[e])
     }
   }
 
@@ -202,9 +211,9 @@
 
 
   //This uses a built in 'drawLine' function, provided by the javascript canvas
-  function drawLine(x1, y1, x2, y2){
+  function drawLine(x1, y1, x2, y2, color){
     ctx.lineWidth = 2;
-    ctx.strokeStyle = "white";
+    ctx.strokeStyle = color;
 
     //this is how you draw a line on the canvas 
     ctx.beginPath();
