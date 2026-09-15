@@ -119,13 +119,22 @@
     offset: [{x:0,y:0,z:0}, {x:-.5,y:0,z:.5}]
   }
 
-  for(let i = 0; i < 100; i++) {
+  let other_cars = []
+  let other_cars_offset = []
+
+  for(let i = 0; i < 50; i++) {
+
     let car_clone = structuredClone(car)
     car_clone.color = "red"
-    scene.objs.push(car_clone)
+    other_cars.push(car_clone)
 
-    scene.offset.push({x:-2.5,y:0,z:20.5+(i*10)})
+    let randXPos = Math.floor(Math.random() * 3)
+
+    other_cars_offset.push({x:-2.5 + (2 * randXPos),y:0,z:20.5+(i*25)})
   }
+
+  scene.objs.push(...other_cars)
+  scene.offset.push(...other_cars_offset)
 
   function draw(){
 
@@ -138,7 +147,6 @@
     let offsetIndex = 0
     for (obj of scene.objs){
       let offset = scene.offset[offsetIndex]
-      console.log(offset, offsetIndex)
       for(let e = 0; e < obj.edges.length; e++) {
         let v1 = {x: obj.vertices[obj.edges[e][0]].x + offset.x, y: obj.vertices[obj.edges[e][0]].y + offset.y, z: obj.vertices[obj.edges[e][0]].z + offset.z}
         let v2 = {x: obj.vertices[obj.edges[e][1]].x + offset.x, y: obj.vertices[obj.edges[e][1]].y + offset.y, z: obj.vertices[obj.edges[e][1]].z + offset.z}
@@ -186,16 +194,16 @@
   }
 
 
-  //This uses a built in 'drawLine' function, provided by the javascript canvas
-  function drawLine(x1, y1, x2, y2, color){
+  //This uses a built in 'drawLine' function, provided by the javascript canvas                                                                                                                                          
+  function drawLine(x1, y1, x2, y2, color) {
     ctx.lineWidth = 2;
     ctx.strokeStyle = color;
 
     //this is how you draw a line on the canvas 
-    ctx.beginPath();
-    ctx.moveTo(x1, y1);
-    ctx.lineTo(x2, y2);
-    ctx.stroke();
+    ctx.beginPath()
+    ctx.moveTo(x1, y1)
+    ctx.lineTo(x2, y2)
+    ctx.stroke()
   }
 
 
@@ -222,7 +230,7 @@
           //****TO DO: Change camera x position move left
           camera.x-=0.1;
           for(v of car.vertices) {
-            v.x -= 0.1  
+            v.x -= 0.1
           }
           console.log("Left arrow pressed");
           draw();
@@ -231,7 +239,7 @@
           //****TO DO: Change camera x position move right
           camera.x+=0.1;
           for(v of car.vertices) {
-            v.x += 0.1  
+            v.x += 0.1
           }
           console.log("Right arrow pressed");
           draw();
@@ -248,17 +256,30 @@
       }
     });
 
-  var intervalID = window.setInterval(drive, 20);
+  var intervalID = window.setInterval(drive, 0.5);
 
   function drive() {
     camera.z+=0.1;
     for(v of car.vertices) {
       v.z += 0.1  
     }
+
+    //checkForCollision()
+
     draw();
   }
 
-    
+  function checkForCollision() {
+    let current_z = car.vertices[0].z
+
+    let cars_ahead = other_cars.filter(car => car.z > current_z)
+
+    for (car of other_cars) {
+      return 
+    }
+
+    console.log(current_z)
+  }
 
   function resizeCanvas() {
     canvas.width = window.innerWidth;
