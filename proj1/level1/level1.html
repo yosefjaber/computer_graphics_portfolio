@@ -42,10 +42,17 @@
   const canvas = document.getElementById("canvas");
   const ctx = canvas.getContext("2d");
   const limit = 1
+  const spaceBetweenOtherCars = 30
+  const otherCarsOffset = 30
+  const otherCarsCount = 100
+
+  function betweenInts(x, lower, upper){
+    return (x > lower && x < upper);
+  }
 
   let camera = {x: 0, y: 5, z: -10};
 
-  let car = {
+  const car = {
     "vertices": [
         {"x": 0, "y": 0, "z": 0},
         {"x": 1, "y": 0, "z": 5},
@@ -77,7 +84,7 @@
     "scale": 1
   }
 
-  let plane = {
+  const plane = {
     "vertices": [
         {"x": -500, "y": 0, "z": 0},
         {"x": -500, "y": 0, "z": 2000},
@@ -121,17 +128,9 @@
 
   let other_cars = []
   let other_cars_offset = []
+  let other_cars_front_right_vertex = []
 
-  for(let i = 0; i < 50; i++) {
-
-    let car_clone = structuredClone(car)
-    car_clone.color = "red"
-    other_cars.push(car_clone)
-
-    let randXPos = Math.floor(Math.random() * 3)
-
-    other_cars_offset.push({x:-2.5 + (2 * randXPos),y:0,z:20.5+(i*25)})
-  }
+  spawnOtherCars()
 
   scene.objs.push(...other_cars)
   scene.offset.push(...other_cars_offset)
@@ -264,27 +263,45 @@
       v.z += 0.1  
     }
 
-    //checkForCollision()
+    draw()  
 
-    draw();
+    checkForCollision()
   }
 
   function checkForCollision() {
-    let current_z = car.vertices[0].z
+    car_front_right_vertex = car.vertices[1]
 
-    let cars_ahead = other_cars.filter(car => car.z > current_z)
-
-    for (car of other_cars) {
-      return 
+    for(other_car_front_right_vertex of other_cars_front_right_vertex) {
+      let x_collision = betweenInts(car_front_right_vertex.x, other_car_front_right_vertex.x - 1 , other_car_front_right_vertex.x)
+      let z_collision = betweenInts(car_front_right_vertex.z, other_car_front_right_vertex.z - 5, other_car_front_right_vertex.z)
+      if (x_collision && z_collision) {
+        crash()
+      }
     }
+  }
 
-    console.log(current_z)
+  function crash() {
+    console.log("CRASH")
   }
 
   function resizeCanvas() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
     draw();
+  }
+
+  function spawnOtherCars() {
+    for(let i = 0; i < otherCarsCount; i++) {
+
+      let car_clone = structuredClone(car)
+      car_clone.color = "red"
+      other_cars.push(car_clone)
+
+      let randXPos = Math.floor(Math.random() * 3)
+
+      other_cars_offset.push({x:-2.5 + (2 * randXPos),y:0,z:otherCarsOffset+(i*spaceBetweenOtherCars)})
+      other_cars_front_right_vertex.push({x:-2.5 + (2 * randXPos) + 1.5,y:0,z:otherCarsOffset+(i*spaceBetweenOtherCars)+5})
+    }
   }
 
 
