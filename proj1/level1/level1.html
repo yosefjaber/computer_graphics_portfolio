@@ -244,10 +244,7 @@
           draw();
           break;
         case "KeyR":
-          //****TO DO: reset camera
-          camera = {x: 0, y: 0, z: -10};
-          console.log("Reset");
-          draw();
+          reset()
           break;
         default:
           return; 
@@ -272,7 +269,7 @@
     car_front_right_vertex = car.vertices[1]
 
     for(other_car_front_right_vertex of other_cars_front_right_vertex) {
-      let x_collision = betweenInts(car_front_right_vertex.x, other_car_front_right_vertex.x - 1 , other_car_front_right_vertex.x)
+      let x_collision = betweenInts(car_front_right_vertex.x, other_car_front_right_vertex.x - 1 , other_car_front_right_vertex.x + 1)
       let z_collision = betweenInts(car_front_right_vertex.z, other_car_front_right_vertex.z - 5, other_car_front_right_vertex.z)
       if (x_collision && z_collision) {
         crash()
@@ -282,6 +279,22 @@
 
   function crash() {
     console.log("CRASH")
+    reset()
+  }
+
+  function reset() {
+    camera = {x: 0, y: 5, z: -10};
+    car.vertices = [
+        {"x": 0, "y": 0, "z": 0},
+        {"x": 1, "y": 0, "z": 5},
+        {"x": 0, "y": 0, "z": 5},
+        {"x": 1, "y": 0, "z": 0},
+
+        {"x": 0, "y": 1, "z": 0},
+        {"x": 1, "y": 1, "z": 5},
+        {"x": 0, "y": 1, "z": 5},
+        {"x": 1, "y": 1, "z": 0},
+    ]
   }
 
   function resizeCanvas() {
