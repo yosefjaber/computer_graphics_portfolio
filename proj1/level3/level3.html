@@ -149,12 +149,12 @@
   let other_cars_offset = []
   let other_cars_front_right_vertex = []
 
-  createLaneLines()
-  createLamps()
-  spawnOtherCars()
+  // createLaneLines()
+  // createLamps()
+  // spawnOtherCars()
 
-  scene.objs.push(...other_cars)
-  scene.offset.push(...other_cars_offset)
+  // scene.objs.push(...other_cars)
+  // scene.offset.push(...other_cars_offset)
 
   //ALL FUNCTIONS BELOW
 
@@ -178,26 +178,41 @@
   }
   requestAnimationFrame(loop);
 
+  function draw() {
+    const cw = canvas.width, ch = canvas.height;
+    ctx.fillStyle = "#050510";
+    ctx.fillRect(0, 0, cw, ch);
+    const pw = cw / cols, ph = ch / rows;   // scale 320x200 grid to the window
+    for (let u = 0; u < cols; u++) {
+      for (let v = 0; v < rows; v++) {
+        const c = pixelGrid[u][v];
+        if (c !== "#050510") {
+          ctx.fillStyle = c;
+          ctx.fillRect(u * pw, v * ph, pw + 1, ph + 1);
+        }
+      }
+    }
+  }
+
   function drive() {
     for (let u = 0; u < cols; u++) pixelGrid[u].fill("#050510");
-
-    camera.z+=0.3;
-    for(v of car.vertices) {
-      v.z += 0.3  
-    }
-
-    makeLines()
-    checkForCollision()
+    camera.z += 0.3;
+    moveObj(car, {x: 0, y: 0, z: 0.3});
+    makeTriangles();
+    checkForCollision();
+    draw();
   }
+
+  
 
   function makeTriangles() {
     let offsetIndex = 0
     for(let obj of scene.objs) {
       let offset = scene.offset[offsetIndex]
       for(let triangle of obj.triangles) {
-        let v0 = {x: obj.triangles[0].x + offset.x, y: obj.triangles[0].y + offset.y, z: obj.triangles[0].z + offset.z}
-        let v1 = {x: obj.triangles[1].x + offset.x, y: obj.triangles[1].y + offset.y, z: obj.triangles[1].z + offset.z}
-        let v2 = {x: obj.triangles[2].x + offset.x, y: obj.triangles[2].y + offset.y, z: obj.triangles[2].z + offset.z}
+        let v0 = {x: triangle[0].x + offset.x, y: triangle[0].y + offset.y, z: triangle[0].z + offset.z}
+        let v1 = {x: triangle[1].x + offset.x, y: triangle[1].y + offset.y, z: triangle[1].z + offset.z}
+        let v2 = {x: triangle[2].x + offset.x, y: triangle[2].y + offset.y, z: triangle[2].z + offset.z}
 
         let cam0 = { x: v0.x - camera.x, y: v0.y - camera.y, z: v0.z - camera.z }
         let cam1 = { x: v1.x - camera.x, y: v1.y - camera.y, z: v1.z - camera.z }
@@ -221,70 +236,58 @@
         p2.u = (cam2.x/cam2.z) * cols + cols / 2
         p2.v = (cam2.y/cam2.z) * rows + rows / 2
         
-        fillTriangle(p0, p1, p2, color)
+        fillTriangle(p0, p1, p2, "#FFFFFF")
 
       }
       offset++
     }
   }
 
-  function fillTriangle(vert0, vert1, vert2, color) {
-    m0, b0 = findLine(vert0, vert1)
-    m1, b1 = findLine(vert0, vert1)
-    m2, b2 = findLine(vert0, vert1)
-
-    let pixelGrid = Array.from({ length: cols }, () => Array(rows).fill(true));
-
-    for (let pixel in pixelGrid) {
-      if
+  function moveObj(obj, offset) {
+    // Loop through all triangles
+    for (let triangle of obj.triangles) {
+      for (let point of triangle) {
+        point.x = point.x + offset.x
+        point.y = point.y + offset.y
+        point.z = point.z + offset.z
+      }
     }
   }
 
-  function findLine(vert1, vert2) {
-    m = (vert1.v - vert2.v) / (vert1.u - vert2.u) 
-    b = vert1.v - (vert1.u * m)
+  function fillTriangle(v0, v1, v2, color) {
+    let area = areaOfTriangle(v0, v1, v2);
+    console.log(area)
+    if (area === 0) return;
 
-    return (m, b)
+    let minX = Math.max(0, Math.floor(Math.min(v0.u, v1.u, v2.u)));
+    let maxX = Math.min(cols - 1, Math.ceil(Math.max(v0.u, v1.u, v2.u)));
+    let minY = Math.max(0, Math.floor(Math.min(v0.v, v1.v, v2.v)));
+    let maxY = Math.min(rows - 1, Math.ceil(Math.max(v0.v, v1.v, v2.v)));
+
+    for (let y = minY; y <= maxY; y++) {
+      for (let x = minX; x <= maxX; x++) {
+        let P = { u: x + 0.5, v: y + 0.5 };
+
+        let l0 = areaOfTriangle(P, v1, v2) / area;
+        let l1 = areaOfTriangle(P, v2, v0) / area;
+        let l2 = areaOfTriangle(P, v0, v1) / area;
+
+        if (l0 >= 0 && l1 >= 0 && l2 >= 0) {
+          setPixelColor(x, y, color);
+        }
+      }
+    }
   }
 
-  function planeIntersect(front, back) {
-      let new_back_vert = {}
-      // t is a fraction of how much of the line is visable
-      let t = (front.z - limit) / (front.z - back.z)
+  function areaOfTriangle(v0, v1, v2) {
+    let a = {u: v1.u - v0.u, v: v1.v - v0.v}
+    let b = {u: v2.u - v0.u, v: v2.v - v0.v}
 
-      new_back_vert.x = front.x + t * (back.x - front.x)
-      new_back_vert.y = front.y + t * (back.y - front.y)
-      new_back_vert.z = limit
-      return new_back_vert;
-  }
-                                                                                                                                       
-  function drawLine(u1, v1, u2, v2, color) {
-    let x1 = u1, y1 = v1;
-    let x2 = u2, y2 = v2;
-
-    const steep = Math.abs(y2 - y1) > Math.abs(x2 - x1);
-    if (steep) {
-        [x1, y1] = [y1, x1];
-        [x2, y2] = [y2, x2];
-    }
-
-    if (x1 > x2) {
-        [x1, x2] = [x2, x1];
-        [y1, y2] = [y2, y1];
-    }
-
-    const m = (x2 === x1) ? 0 : (y2 - y1) / (x2 - x1);
-    const b = y1 - m * x1;
-
-    for (let x = x1; x <= x2; x++) {
-        const y = Math.round(m * x + b);
-        if (steep) setPixelColor(y, x, "white");  
-        else       setPixelColor(x, y, "white");
-    }
+    return a.u * b.v - a.v * b.u
   }
 
   function checkForCollision() {
-    car_front_right_vertex = car.vertices[1]
+    car_front_right_vertex = car.triangles[6][2]
 
     for(let other_car_front_right_vertex of other_cars_front_right_vertex) {
       let x_collision = betweenInts(car_front_right_vertex.x, other_car_front_right_vertex.x - 1 , other_car_front_right_vertex.x + 1)
@@ -318,7 +321,7 @@
   function resizeCanvas() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-    draw();
+    // draw();
   }
 
   function spawnOtherCars() {
@@ -365,7 +368,7 @@
         case "ArrowLeft":
           //****TO DO: Change camera x position move left
           camera.x-=0.1;
-          for(v of car.vertices) {
+          for(v of car.triangles) {
             v.x -= 0.1
           }
           console.log("Left arrow pressed");
