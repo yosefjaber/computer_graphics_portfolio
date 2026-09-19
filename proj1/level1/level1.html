@@ -37,8 +37,7 @@
   </div>
 
 <script>
-
-  //we add shapes (like lines) to this canvas
+  //
   const canvas = document.getElementById("canvas");
   const ctx = canvas.getContext("2d");
 
@@ -53,17 +52,9 @@
   const otherCarsOffset = 40
   const otherCarsCount = 100
 
-  function setPixelColor(u,v,color){
-    if (u < 0 || u >= cols || v < 0 || v >= rows) return;
-    pixelGrid[u][v] = color
-  }
+  let camera = {x: 0, y: 5, z: -10}
 
-  function betweenInts(x, lower, upper){
-    return (x > lower && x < upper)
-  }
-
-  let camera = {x: 0, y: 5, z: -10};
-
+  //Objects
   const car = {
     "vertices": [
         {"x": 0, "y": 0, "z": 0},
@@ -182,6 +173,22 @@
   scene.objs.push(...other_cars)
   scene.offset.push(...other_cars_offset)
 
+  //ALL FUNCTIONS BELOW
+
+  function setPixelColor(u,v,color){
+    if (u < 0 || u >= cols || v < 0 || v >= rows) return;
+    pixelGrid[u][v] = color
+  }
+
+  function betweenInts(x, lower, upper){
+    return (x > lower && x < upper)
+  }
+
+  function setPixelColor(u,v,color){
+    if (u < 0 || u >= cols || v < 0 || v >= rows) return;
+    pixelGrid[u][v] = color
+  }
+
   function loop() {
     drive();
     requestAnimationFrame(loop);
@@ -211,15 +218,8 @@
     ctx.lineWidth = 1;
     ctx.strokeStyle = "#444444";
 
-    for(v=0; v< 200; v++){
-      for(u=0; u<320; u++){
-
-        //if you want to see what is going on
-        // console.log(u);
-        // console.log(v);
-        // console.log(pixelGrid[u][v]);
-        // console.log("----")
-
+    for(let v=0; v< 200; v++){
+      for(let u=0; u<320; u++){
         ctx.fillStyle = pixelGrid[u][v];
         ctx.fillRect(u*5, v*5, 5, 5);
 
@@ -233,7 +233,7 @@
 
   function makeLines() {
     let offsetIndex = 0
-    for (obj of scene.objs){
+    for (let obj of scene.objs){
       let offset = scene.offset[offsetIndex]
       for(let e = 0; e < obj.edges.length; e++) {
         let v1 = {x: obj.vertices[obj.edges[e][0]].x + offset.x, y: obj.vertices[obj.edges[e][0]].y + offset.y, z: obj.vertices[obj.edges[e][0]].z + offset.z}
@@ -281,26 +281,35 @@
       return new_back_vert;
   }
                                                                                                                                        
-  function drawLine(x1, y1, x2, y2, color) {
-    // clip huge coordinates so the loop doesn't run for millions of steps
-    if (Math.max(Math.abs(x1), Math.abs(x2), Math.abs(y1), Math.abs(y2)) > 5000) return;
+  function drawLine(u1, v1, u2, v2, color) {
+    let x1 = u1, y1 = v1;
+    let x2 = u2, y2 = v2;
 
-    const dx = Math.abs(x2 - x1), dy = -Math.abs(y2 - y1);
-    const sx = x1 < x2 ? 1 : -1, sy = y1 < y2 ? 1 : -1;
-    let err = dx + dy;
-    while (true) {
-      setPixelColor(x1, y1, "#FFFFFF");
-      if (x1 === x2 && y1 === y2) break;
-      const e2 = 2 * err;
-      if (e2 >= dy) { err += dy; x1 += sx; }
-      if (e2 <= dx) { err += dx; y1 += sy; }
+    const steep = Math.abs(y2 - y1) > Math.abs(x2 - x1);
+    if (steep) {
+        [x1, y1] = [y1, x1];
+        [x2, y2] = [y2, x2];
+    }
+
+    if (x1 > x2) {
+        [x1, x2] = [x2, x1];
+        [y1, y2] = [y2, y1];
+    }
+
+    const m = (x2 === x1) ? 0 : (y2 - y1) / (x2 - x1);
+    const b = y1 - m * x1;
+
+    for (let x = x1; x <= x2; x++) {
+        const y = Math.round(m * x + b);
+        if (steep) setPixelColor(y, x, "white");  
+        else       setPixelColor(x, y, "white");
     }
   }
 
   function checkForCollision() {
     car_front_right_vertex = car.vertices[1]
 
-    for(other_car_front_right_vertex of other_cars_front_right_vertex) {
+    for(let other_car_front_right_vertex of other_cars_front_right_vertex) {
       let x_collision = betweenInts(car_front_right_vertex.x, other_car_front_right_vertex.x - 1 , other_car_front_right_vertex.x + 1)
       let z_collision = betweenInts(car_front_right_vertex.z, other_car_front_right_vertex.z - 5, other_car_front_right_vertex.z + 5)
       if (x_collision && z_collision) {

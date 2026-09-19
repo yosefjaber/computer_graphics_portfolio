@@ -101,41 +101,29 @@
     pixelGrid[u][v] = color; 
   }
 
-  function makePixelatedLine(u1, v1, u2, v2, color){
+  function makePixelatedLine(u1, v1, u2, v2, color) {
+    let x1 = u1, y1 = v1;
+    let x2 = u2, y2 = v2;
 
-    //******** TO DO
-    //use the algorithm in the slides to incrementally fill
-    // in pixels going from u1,v1 to u2,v2
-    // you can use 'setPixelColor'
-    // note, you may need to handle 'cases'- ex.u1>u2 vs u2>u2 
-
-    y1 = 200 - v1
-    y2 = 200 - v2
-
-    x1 = u1
-    x2 = u2
-
-    let onLine, output
-
-    m = (y2-y1) / (x2-x1)
-    b = y1 - (m*x1)
-
-    console.log(m, b)
-
-    for(let y = y1; y < y2; y++) {
-      for(let x = x1; x < x2; x++) {
-        output = m*x + b
-
-        onLine = betweenInts(y, output - 1, output + 1)
-        if(onLine) {
-          setPixelColor(x, 200-y, "white")
-        }
-      }
+    const steep = Math.abs(y2 - y1) > Math.abs(x2 - x1);
+    if (steep) {
+        [x1, y1] = [y1, x1];
+        [x2, y2] = [y2, x2];
     }
 
+    if (x1 > x2) {
+        [x1, x2] = [x2, x1];
+        [y1, y2] = [y2, y1];
+    }
 
+    const m = (x2 === x1) ? 0 : (y2 - y1) / (x2 - x1);
+    const b = y1 - m * x1;
 
-
+    for (let x = x1; x <= x2; x++) {
+        const y = Math.round(m * x + b);
+        if (steep) setPixelColor(y, x, color);  
+        else       setPixelColor(x, y, color);
+    }
   }
 
   function betweenInts(x, x1, x2) {
