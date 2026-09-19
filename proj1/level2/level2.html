@@ -42,8 +42,8 @@
   const canvas = document.getElementById("canvas");
   const ctx = canvas.getContext("2d");
   const limit = 1
-  const spaceBetweenOtherCars = 25
-  const otherCarsOffset = 40
+  const spaceBetweenOtherCars = 30
+  const otherCarsOffset = 30
   const otherCarsCount = 100
 
   function betweenInts(x, lower, upper){
@@ -209,6 +209,8 @@
         let p2 = {}
         p2.u = (cam2.x/cam2.z) * canvas.width + canvas.width / 2
         p2.v = (cam2.y/cam2.z) * canvas.height + canvas.height / 2
+
+        //console.log(p2)
 
         drawLine(p1.u, canvas.height - p1.v, p2.u, canvas.height - p2.v, obj.color)
       }
