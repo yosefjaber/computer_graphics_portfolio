@@ -41,13 +41,25 @@
   //we add shapes (like lines) to this canvas
   const canvas = document.getElementById("canvas");
   const ctx = canvas.getContext("2d");
+
+  const rows = 200;
+  const cols = 320;
+  const pixelGrid = Array.from({ length: cols }, () => Array(rows).fill("#050510"));
+
+  let seePixelOutline = false; 
+
   const limit = 1
   const spaceBetweenOtherCars = 25
   const otherCarsOffset = 40
   const otherCarsCount = 100
 
+  function setPixelColor(u,v,color){
+    if (u < 0 || u >= cols || v < 0 || v >= rows) return;
+    pixelGrid[u][v] = color
+  }
+
   function betweenInts(x, lower, upper){
-    return (x > lower && x < upper);
+    return (x > lower && x < upper)
   }
 
   let camera = {x: 0, y: 5, z: -10};
@@ -170,6 +182,25 @@
   scene.objs.push(...other_cars)
   scene.offset.push(...other_cars_offset)
 
+  function loop() {
+    drive();
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+
+  function drive() {
+    for (let u = 0; u < cols; u++) pixelGrid[u].fill("#050510");
+
+    camera.z+=0.3;
+    for(v of car.vertices) {
+      v.z += 0.3  
+    }
+
+    makeLines()
+    draw() 
+    checkForCollision()
+  }
+
   function draw(){
 
     //here we set up and clear the canvas, every draw frame
@@ -177,7 +208,30 @@
     ctx.fillStyle = "#050510";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = "#444444";
 
+    for(v=0; v< 200; v++){
+      for(u=0; u<320; u++){
+
+        //if you want to see what is going on
+        // console.log(u);
+        // console.log(v);
+        // console.log(pixelGrid[u][v]);
+        // console.log("----")
+
+        ctx.fillStyle = pixelGrid[u][v];
+        ctx.fillRect(u*5, v*5, 5, 5);
+
+        if( seePixelOutline ){
+          ctx.strokeRect(u*5, v*5, 5, 5);
+        }
+
+      }
+    }
+  }
+
+  function makeLines() {
     let offsetIndex = 0
     for (obj of scene.objs){
       let offset = scene.offset[offsetIndex]
@@ -203,14 +257,14 @@
         }
 
         let p1 = {}
-        p1.u = (cam1.x/cam1.z) * canvas.width + canvas.width / 2
-        p1.v = (cam1.y/cam1.z) * canvas.height + canvas.height / 2
+        p1.u = (cam1.x/cam1.z) * cols + cols / 2
+        p1.v = (cam1.y/cam1.z) * rows + rows / 2
 
         let p2 = {}
-        p2.u = (cam2.x/cam2.z) * canvas.width + canvas.width / 2
-        p2.v = (cam2.y/cam2.z) * canvas.height + canvas.height / 2
+        p2.u = (cam2.x/cam2.z) * cols + cols / 2
+        p2.v = (cam2.y/cam2.z) * rows + rows / 2
 
-        drawLine(p1.u, canvas.height - p1.v, p2.u, canvas.height - p2.v, obj.color)
+        drawLine(Math.round(p1.u), Math.round(rows - p1.v), Math.round(p2.u), Math.round(rows - p2.v), obj.color)
       }
       offsetIndex+=1
     }
@@ -226,68 +280,21 @@
       new_back_vert.z = limit
       return new_back_vert;
   }
-
-
-  //This uses a built in 'drawLine' function, provided by the javascript canvas                                                                                                                                          
+                                                                                                                                       
   function drawLine(x1, y1, x2, y2, color) {
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = color;
+    // clip huge coordinates so the loop doesn't run for millions of steps
+    if (Math.max(Math.abs(x1), Math.abs(x2), Math.abs(y1), Math.abs(y2)) > 5000) return;
 
-    //this is how you draw a line on the canvas 
-    ctx.beginPath()
-    ctx.moveTo(x1, y1)
-    ctx.lineTo(x2, y2)
-    ctx.stroke()
-  }
-
-
-  //this is how we detect events- 
-
-  // do nothing for now....
-    document.addEventListener("keydown", (event) => {
-
-      event.preventDefault();
-       switch (event.code) {
-        case "ArrowLeft":
-          //****TO DO: Change camera x position move left
-          camera.x-=0.1;
-          for(v of car.vertices) {
-            v.x -= 0.1
-          }
-          console.log("Left arrow pressed");
-          break;
-        case "ArrowRight":
-          //****TO DO: Change camera x position move right
-          camera.x+=0.1;
-          for(v of car.vertices) {
-            v.x += 0.1
-          }
-          console.log("Right arrow pressed");
-          break;
-        case "KeyR":
-          reset()
-          break;
-        default:
-          return; 
-      
-      }
-    });
-
-  function loop() {
-    drive();
-    requestAnimationFrame(loop);
-  }
-  requestAnimationFrame(loop);
-
-  function drive() {
-    camera.z+=0.3;
-    for(v of car.vertices) {
-      v.z += 0.3  
+    const dx = Math.abs(x2 - x1), dy = -Math.abs(y2 - y1);
+    const sx = x1 < x2 ? 1 : -1, sy = y1 < y2 ? 1 : -1;
+    let err = dx + dy;
+    while (true) {
+      setPixelColor(x1, y1, "#FFFFFF");
+      if (x1 === x2 && y1 === y2) break;
+      const e2 = 2 * err;
+      if (e2 >= dy) { err += dy; x1 += sx; }
+      if (e2 <= dx) { err += dx; y1 += sy; }
     }
-
-    draw()  
-
-    checkForCollision()
   }
 
   function checkForCollision() {
@@ -362,6 +369,37 @@
     }
   }
 
+  //this is how we detect events- 
+
+  // do nothing for now....
+    document.addEventListener("keydown", (event) => {
+
+      event.preventDefault();
+       switch (event.code) {
+        case "ArrowLeft":
+          //****TO DO: Change camera x position move left
+          camera.x-=0.1;
+          for(v of car.vertices) {
+            v.x -= 0.1
+          }
+          console.log("Left arrow pressed");
+          break;
+        case "ArrowRight":
+          //****TO DO: Change camera x position move right
+          camera.x+=0.1;
+          for(v of car.vertices) {
+            v.x += 0.1
+          }
+          console.log("Right arrow pressed");
+          break;
+        case "KeyR":
+          reset()
+          break;
+        default:
+          return; 
+      
+      }
+    });
 
   window.addEventListener("resize", resizeCanvas);
   resizeCanvas();
