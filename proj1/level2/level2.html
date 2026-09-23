@@ -301,8 +301,8 @@
 
     for (let x = x1; x <= x2; x++) {
         const y = Math.round(m * x + b);
-        if (steep) setPixelColor(y, x, "white");  
-        else       setPixelColor(x, y, "white");
+        if (steep) setPixelColor(y, x, color);  
+        else       setPixelColor(x, y, color);
     }
   }
 
@@ -386,19 +386,23 @@
       event.preventDefault();
        switch (event.code) {
         case "ArrowLeft":
-          //****TO DO: Change camera x position move left
-          camera.x-=0.1;
-          for(v of car.vertices) {
-            v.x -= 0.1
+          if(car_front_right_vertex.x >= -1.5) {
+            camera.x-=0.1
+            for(v of car.vertices) {
+              v.x -= 0.1
+            }
           }
+
           console.log("Left arrow pressed");
           break;
         case "ArrowRight":
-          //****TO DO: Change camera x position move right
-          camera.x+=0.1;
-          for(v of car.vertices) {
-            v.x += 0.1
+          if(car_front_right_vertex.x <= 3.5) {
+            camera.x+=0.1
+            for(v of car.vertices) {
+              v.x += 0.1
+            }
           }
+
           console.log("Right arrow pressed");
           break;
         case "KeyR":

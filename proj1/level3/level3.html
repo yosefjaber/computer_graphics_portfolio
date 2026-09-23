@@ -56,7 +56,6 @@
 
   //Objects
 
-  //I lowkey used AI for these objects..plz dont be mad...
   const car = {
     "triangles": [
       // x = 0 face (left)
@@ -244,8 +243,6 @@
     let vert0_in_front = v0.z >= limit
     let vert1_in_front = v1.z >= limit
     let vert2_in_front = v2.z >= limit
-
-    //if(!vert0_in_front || !vert1_in_front || !vert2_in_front) continue;
 
     if(!vert0_in_front && !vert1_in_front && !vert2_in_front){
       return;
@@ -444,21 +441,24 @@
       event.preventDefault();
        switch (event.code) {
         case "ArrowLeft":
-          //****TO DO: Change camera x position move left
-          camera.x-=0.1;
-          for(let triangle of car.triangles) {
-            for(let vert of triangle) {
-              vert.x -= 0.1
+          if(car.triangles[6][2].x >= -2) {
+            camera.x -= 0.1
+            for( let triangle of car.triangles ) {
+              for ( let vert of triangle ) {
+                vert.x -= 0.1
+              }
             }
           }
           console.log("Left arrow pressed");
           break;
         case "ArrowRight":
-          //****TO DO: Change camera x position move right
-          camera.x+=0.1;
-          for(let triangle of car.triangles) {
-            for(let vert of triangle) {
-              vert.x += 0.1
+          if(car.triangles[6][2].x <= 4){
+            //****TO DO: Change camera x position move right
+            camera.x+=0.1;
+            for(let triangle of car.triangles) {
+              for(let vert of triangle) {
+                vert.x += 0.1
+              }
             }
           }
           console.log("Right arrow pressed");

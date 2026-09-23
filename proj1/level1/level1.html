@@ -244,26 +244,29 @@
 
 
   //this is how we detect events- 
-
   // do nothing for now....
     document.addEventListener("keydown", (event) => {
 
       event.preventDefault();
        switch (event.code) {
         case "ArrowLeft":
-          //****TO DO: Change camera x position move left
-          camera.x-=0.1;
-          for(v of car.vertices) {
-            v.x -= 0.1
+          if(car_front_right_vertex.x >= -1.5) {
+            camera.x-=0.1
+            for(v of car.vertices) {
+              v.x -= 0.1
+            }
           }
+
           console.log("Left arrow pressed");
           break;
         case "ArrowRight":
-          //****TO DO: Change camera x position move right
-          camera.x+=0.1;
-          for(v of car.vertices) {
-            v.x += 0.1
+          if(car_front_right_vertex.x <= 3.5) {
+            camera.x+=0.1
+            for(v of car.vertices) {
+              v.x += 0.1
+            }
           }
+
           console.log("Right arrow pressed");
           break;
         case "KeyR":
@@ -288,7 +291,6 @@
     }
 
     draw()  
-
     checkForCollision()
   }
 
