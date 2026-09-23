@@ -251,42 +251,42 @@
       return;
     }
     else if(vert0_in_front && !vert1_in_front && !vert2_in_front) {
-      new_vert1 = planeIntersect(v0, v1)
-      new_vert2 = planeIntersect(v0, v2)
+      let new_vert1 = planeIntersect(v0, v1)
+      let new_vert2 = planeIntersect(v0, v2)
       makeTriangles(v0, new_vert1, new_vert2, color)
       return;
     }
     else if (!vert0_in_front && vert1_in_front && !vert2_in_front) {
-      new_vert1 = planeIntersect(v1, v0)
-      new_vert2 = planeIntersect(v1, v2)
+      let new_vert1 = planeIntersect(v1, v0)
+      let new_vert2 = planeIntersect(v1, v2)
       makeTriangles(v1, new_vert1, new_vert2, color)
       return;
     }
     else if (vert0_in_front && vert1_in_front && !vert2_in_front) {
-      v02_intersect = planeIntersect(v0, v2)
-      v12_intersect = planeIntersect(v1, v2)
+      let v02_intersect = planeIntersect(v0, v2)
+      let v12_intersect = planeIntersect(v1, v2)
 
       makeTriangles(v0, v1, v02_intersect, color)
       makeTriangles(v1, v02_intersect, v12_intersect, color)
       return;
     }
     else if (!vert0_in_front && !vert1_in_front && vert2_in_front) {
-      new_vert1 = planeIntersect(v2, v0)
-      new_vert2 = planeIntersect(v2, v1)
+      let new_vert1 = planeIntersect(v2, v0)
+      let new_vert2 = planeIntersect(v2, v1)
       makeTriangles(v2, new_vert1, new_vert2, color)
       return;
     }
     else if (vert0_in_front && !vert1_in_front && vert2_in_front) {
-      v12_intersect = planeIntersect(v2, v1)
-      v01_intersect = planeIntersect(v0, v1)
+      let v12_intersect = planeIntersect(v2, v1)
+      let v01_intersect = planeIntersect(v0, v1)
 
       makeTriangles(v2, v12_intersect, v0, color)
       makeTriangles(v0, v01_intersect, v12_intersect, color)
       return;
     }
     else if (!vert0_in_front && vert1_in_front && vert2_in_front) {
-      v02_intersect = planeIntersect(v2, v0)
-      v01_intersect = planeIntersect(v1, v0)
+      let v02_intersect = planeIntersect(v2, v0)
+      let v01_intersect = planeIntersect(v1, v0)
 
       makeTriangles(v2, v02_intersect, v1, color)
       makeTriangles(v1, v01_intersect, v02_intersect, color)
@@ -358,7 +358,7 @@
 
 
   function checkForCollision() {
-    car_front_right_vertex = car.triangles[6][2]
+    let car_front_right_vertex = car.triangles[6][2]
 
     for(let other_car_front_right_vertex of other_cars_front_right_vertex) {
       let x_collision = betweenInts(car_front_right_vertex.x, other_car_front_right_vertex.x - 1 , other_car_front_right_vertex.x + 1)
@@ -427,8 +427,8 @@
   
   function createLamps() {
     for(let i = 0; i < 10; i++) {
-      x_1 = Math.random()
-      x_2 = Math.random()
+      let x_1 = Math.random()
+      let x_2 = Math.random()
       scene.objs.push(lamp)
       scene.offset.push({x: 4 + x_1, y: 0, z: i*100})
       scene.objs.push(lamp)
