@@ -92,17 +92,14 @@
       [{"x": -500, "y": 0, "z": 0},    {"x": -500, "y": 0, "z": 2000}, {"x": 500, "y": 0, "z": 0}],
       [{"x": -500, "y": 0, "z": 2000}, {"x": 500, "y": 0, "z": 2000},  {"x": 500, "y": 0, "z": 0}]
     ],
-    "color": "white",
+    "color": "gray",
     "scale": 1
   }
 
   const laneLine = {
-    "vertices": [
-        {"x": 0, "y": 0, "z": 0},
-        {"x": 0, "y": 0, "z": 1},
-    ],
-    "edges": [
-        [0,1],
+    "triangles": [
+      [{"x": 0, "y": 0, "z": 0}, {"x": 0.125, "y": 0, "z": 0}, {"x": 0, "y": 0, "z": 2}],
+      [{"x": 0.125, "y": 0, "z": 0}, {"x": 0.125, "y": 0, "z": 2}, {"x": 0, "y": 0, "z": 2}]
     ],
     "color": "white",
     "scale": 1
@@ -141,20 +138,23 @@
   }
 
   let scene = {
-    objs: [plane, car],
-    offset: [{x:0,y:0,z:0}, {x:-.5,y:0,z:.5}]
+    objs: [plane],
+    offset: [{x:0,y:0,z:0}]
   }
 
   let other_cars = []
   let other_cars_offset = []
   let other_cars_front_right_vertex = []
 
-  // createLaneLines()
+  createLaneLines()
   // createLamps()
   spawnOtherCars()
 
   scene.objs.push(...other_cars)
   scene.offset.push(...other_cars_offset)
+
+  scene.objs.push(car)
+  scene.offset.push({x:-.5,y:0,z:.5})
 
   //ALL FUNCTIONS BELOW
 
@@ -335,7 +335,7 @@
         let y3 = a3.y
 
         let l3 = (x1*y2 - x2*y1) / (x1*y3 - x3*y1)
-        let l1 = (((-l3)*x3) + x2) / x1
+        let l1 = (x2*y3 - x3*y2) / (x1*y3 - x3*y1)
         let l2 = 1 - (l1+l3)
 
         if (betweenInts(l1, 0 , 1) && betweenInts(l2, 0, 1) && betweenInts(l3, 0, 1)){
@@ -365,7 +365,7 @@
 
   function crash() {
     console.log("CRASH")
-    reset()
+    //reset()
   }
 
   function reset() {
@@ -420,9 +420,9 @@
   function createLaneLines() {
     for(let i = 0; i < 400; i++) {
       scene.objs.push(laneLine)
-      scene.offset.push({x: 1, y: 0, z: i*3})
+      scene.offset.push({x: 0.875, y: 0, z: i*3})
       scene.objs.push(laneLine)
-      scene.offset.push({x: -1, y: 0, z: i*3})
+      scene.offset.push({x: -1.375, y: 0, z: i*3})
     }
   }
   
