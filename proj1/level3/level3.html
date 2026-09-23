@@ -84,7 +84,7 @@
       [{"x": 0, "y": 0, "z": 5}, {"x": 1, "y": 1, "z": 5}, {"x": 0, "y": 1, "z": 5}]
     ],
     "color": "blue",
-    "scale": 1
+    "scale": 10
   }
 
   const plane = {
@@ -151,20 +151,15 @@
 
   // createLaneLines()
   // createLamps()
-  // spawnOtherCars()
+  spawnOtherCars()
 
-  // scene.objs.push(...other_cars)
-  // scene.offset.push(...other_cars_offset)
+  scene.objs.push(...other_cars)
+  scene.offset.push(...other_cars_offset)
 
   //ALL FUNCTIONS BELOW
 
-  function setPixelColor(u,v,color){
-    if (u < 0 || u >= cols || v < 0 || v >= rows) return;
-    pixelGrid[u][v] = color
-  }
-
   function betweenInts(x, lower, upper){
-    return (x > lower && x < upper)
+    return (x >= lower && x <= upper)
   }
 
   function setPixelColor(u,v,color){
@@ -178,18 +173,25 @@
   }
   requestAnimationFrame(loop);
 
-  function draw() {
-    const cw = canvas.width, ch = canvas.height;
+  function draw(){
+
+    //here we set up and clear the canvas, every draw frame
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = "#050510";
-    ctx.fillRect(0, 0, cw, ch);
-    const pw = cw / cols, ph = ch / rows;   // scale 320x200 grid to the window
-    for (let u = 0; u < cols; u++) {
-      for (let v = 0; v < rows; v++) {
-        const c = pixelGrid[u][v];
-        if (c !== "#050510") {
-          ctx.fillStyle = c;
-          ctx.fillRect(u * pw, v * ph, pw + 1, ph + 1);
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = "#444444";
+
+    for(let v=0; v< 200; v++){
+      for(let u=0; u<320; u++){
+        ctx.fillStyle = pixelGrid[u][v];
+        ctx.fillRect(u*5, v*5, 5, 5);
+
+        if( seePixelOutline ){
+          ctx.strokeRect(u*5, v*5, 5, 5);
         }
+
       }
     }
   }
@@ -198,49 +200,105 @@
     for (let u = 0; u < cols; u++) pixelGrid[u].fill("#050510");
     camera.z += 0.3;
     moveObj(car, {x: 0, y: 0, z: 0.3});
-    makeTriangles();
-    checkForCollision();
-    draw();
-  }
 
-  
-
-  function makeTriangles() {
     let offsetIndex = 0
     for(let obj of scene.objs) {
       let offset = scene.offset[offsetIndex]
       for(let triangle of obj.triangles) {
-        let v0 = {x: triangle[0].x + offset.x, y: triangle[0].y + offset.y, z: triangle[0].z + offset.z}
-        let v1 = {x: triangle[1].x + offset.x, y: triangle[1].y + offset.y, z: triangle[1].z + offset.z}
-        let v2 = {x: triangle[2].x + offset.x, y: triangle[2].y + offset.y, z: triangle[2].z + offset.z}
-
-        let cam0 = { x: v0.x - camera.x, y: v0.y - camera.y, z: v0.z - camera.z }
-        let cam1 = { x: v1.x - camera.x, y: v1.y - camera.y, z: v1.z - camera.z }
-        let cam2 = { x: v2.x - camera.x, y: v2.y - camera.y, z: v2.z - camera.z }
-
-        let vert0_in_front = cam0.z > limit
-        let vert1_in_front = cam1.z > limit
-        let vert2_in_front = cam2.z > limit
-
-        if(!vert0_in_front || !vert1_in_front || !vert2_in_front) continue;
-
-        let p0 = {}
-        p0.u = (cam0.x/cam0.z) * cols + cols / 2
-        p0.v = (cam0.y/cam0.z) * rows + rows / 2
-
-        let p1 = {}
-        p1.u = (cam1.x/cam1.z) * cols + cols / 2
-        p1.v = (cam1.y/cam1.z) * rows + rows / 2
-
-        let p2 = {}
-        p2.u = (cam2.x/cam2.z) * cols + cols / 2
-        p2.v = (cam2.y/cam2.z) * rows + rows / 2
         
-        fillTriangle(p0, p1, p2, "#FFFFFF")
+        let vert0 = {x: triangle[0].x + offset.x - camera.x, y: triangle[0].y + offset.y - camera.y, z: triangle[0].z + offset.z - camera.z}
+        let vert1 = {x: triangle[1].x + offset.x - camera.x, y: triangle[1].y + offset.y - camera.y, z: triangle[1].z + offset.z - camera.z}
+        let vert2 = {x: triangle[2].x + offset.x - camera.x, y: triangle[2].y + offset.y - camera.y, z: triangle[2].z + offset.z - camera.z}
 
+        makeTriangles(vert0, vert1, vert2, obj.color)
       }
-      offset++
+      offsetIndex++
     }
+
+    checkForCollision();
+    draw();
+  }
+
+  // Expects these to be in cam space and returns in cam space
+  function planeIntersect(front, back) {
+      let new_back_vert = {}
+      // t is a fraction of how much of the line is visable
+      let t = (front.z - limit) / (front.z - back.z)
+
+      new_back_vert.x = front.x + t * (back.x - front.x)
+      new_back_vert.y = front.y + t * (back.y - front.y)
+      new_back_vert.z = limit
+      return new_back_vert;
+  }
+
+  // Expects these to be in cam space
+  function makeTriangles(v0, v1, v2, color) {
+
+    let vert0_in_front = v0.z >= limit
+    let vert1_in_front = v1.z >= limit
+    let vert2_in_front = v2.z >= limit
+
+    //if(!vert0_in_front || !vert1_in_front || !vert2_in_front) continue;
+
+    if(!vert0_in_front && !vert1_in_front && !vert2_in_front){
+      return;
+    }
+    else if(vert0_in_front && !vert1_in_front && !vert2_in_front) {
+      new_vert1 = planeIntersect(v0, v1)
+      new_vert2 = planeIntersect(v0, v2)
+      makeTriangles(v0, new_vert1, new_vert2, color)
+      return;
+    }
+    else if (!vert0_in_front && vert1_in_front && !vert2_in_front) {
+      new_vert1 = planeIntersect(v1, v0)
+      new_vert2 = planeIntersect(v1, v2)
+      makeTriangles(v1, new_vert1, new_vert2, color)
+      return;
+    }
+    else if (vert0_in_front && vert1_in_front && !vert2_in_front) {
+      v02_intersect = planeIntersect(v0, v2)
+      v12_intersect = planeIntersect(v1, v2)
+
+      makeTriangles(v0, v1, v02_intersect, color)
+      makeTriangles(v1, v02_intersect, v12_intersect, color)
+      return;
+    }
+    else if (!vert0_in_front && !vert1_in_front && vert2_in_front) {
+      new_vert1 = planeIntersect(v2, v0)
+      new_vert2 = planeIntersect(v2, v1)
+      makeTriangles(v2, new_vert1, new_vert2, color)
+      return;
+    }
+    else if (vert0_in_front && !vert1_in_front && vert2_in_front) {
+      v12_intersect = planeIntersect(v2, v1)
+      v01_intersect = planeIntersect(v0, v1)
+
+      makeTriangles(v2, v12_intersect, v0, color)
+      makeTriangles(v0, v01_intersect, v12_intersect, color)
+      return;
+    }
+    else if (!vert0_in_front && vert1_in_front && vert2_in_front) {
+      v02_intersect = planeIntersect(v2, v0)
+      v01_intersect = planeIntersect(v1, v0)
+
+      makeTriangles(v2, v02_intersect, v1, color)
+      makeTriangles(v1, v01_intersect, v02_intersect, color)
+      return;
+    }
+
+    let p0 = {}
+    p0.x = (v0.x/v0.z) * cols + cols / 2
+    p0.y = rows / 2 - (v0.y/v0.z) * rows
+
+    let p1 = {}
+    p1.x = (v1.x/v1.z) * cols + cols / 2
+    p1.y = rows / 2 - (v1.y/v1.z) * rows
+
+    let p2 = {}
+    p2.x = (v2.x/v2.z) * cols + cols / 2
+    p2.y = rows / 2 - (v2.y/v2.z) * rows
+    
+    fillTriangle(p0, p1, p2, color)
   }
 
   function moveObj(obj, offset) {
@@ -254,37 +312,44 @@
     }
   }
 
-  function fillTriangle(v0, v1, v2, color) {
-    let area = areaOfTriangle(v0, v1, v2);
-    console.log(area)
-    if (area === 0) return;
+  function fillTriangle(v1, v2, v3, color) {
+    let maxX = Math.min(cols - 1, Math.ceil(Math.max(v1.x, v2.x, v3.x)))
+    let minX = Math.max(0, Math.floor(Math.min(v1.x, v2.x, v3.x)))
 
-    let minX = Math.max(0, Math.floor(Math.min(v0.u, v1.u, v2.u)));
-    let maxX = Math.min(cols - 1, Math.ceil(Math.max(v0.u, v1.u, v2.u)));
-    let minY = Math.max(0, Math.floor(Math.min(v0.v, v1.v, v2.v)));
-    let maxY = Math.min(rows - 1, Math.ceil(Math.max(v0.v, v1.v, v2.v)));
+    let maxY = Math.min(rows - 1, Math.ceil(Math.max(v1.y, v2.y, v3.y)))
+    let minY = Math.max(0, Math.floor(Math.min(v1.y, v2.y, v3.y)))
 
-    for (let y = minY; y <= maxY; y++) {
-      for (let x = minX; x <= maxX; x++) {
-        let P = { u: x + 0.5, v: y + 0.5 };
+    for(let x = minX; x <= maxX; x++) {
+      for(let y = minY; y <= maxY; y++) {
+        let a1 = subtract2dVector(v1, v2)
+        let a2 = subtract2dVector({x: x, y: y}, v2)
+        let a3 = subtract2dVector(v3, v2)
 
-        let l0 = areaOfTriangle(P, v1, v2) / area;
-        let l1 = areaOfTriangle(P, v2, v0) / area;
-        let l2 = areaOfTriangle(P, v0, v1) / area;
+        let x1 = a1.x
+        let y1 = a1.y
 
-        if (l0 >= 0 && l1 >= 0 && l2 >= 0) {
-          setPixelColor(x, y, color);
+        let x2 = a2.x
+        let y2 = a2.y
+
+        let x3 = a3.x
+        let y3 = a3.y
+
+        let l3 = (x1*y2 - x2*y1) / (x1*y3 - x3*y1)
+        let l1 = (((-l3)*x3) + x2) / x1
+        let l2 = 1 - (l1+l3)
+
+        if (betweenInts(l1, 0 , 1) && betweenInts(l2, 0, 1) && betweenInts(l3, 0, 1)){
+          console.log("test")
+          setPixelColor(x, y, color)
         }
       }
     }
   }
 
-  function areaOfTriangle(v0, v1, v2) {
-    let a = {u: v1.u - v0.u, v: v1.v - v0.v}
-    let b = {u: v2.u - v0.u, v: v2.v - v0.v}
-
-    return a.u * b.v - a.v * b.u
+  function subtract2dVector(v1, v2) {
+    return {x: v1.x - v2.x, y: v1.y - v2.y}
   }
+
 
   function checkForCollision() {
     car_front_right_vertex = car.triangles[6][2]
@@ -305,16 +370,30 @@
 
   function reset() {
     camera = {x: 0, y: 5, z: -10};
-    car.vertices = [
-        {"x": 0, "y": 0, "z": 0},
-        {"x": 1, "y": 0, "z": 5},
-        {"x": 0, "y": 0, "z": 5},
-        {"x": 1, "y": 0, "z": 0},
+    car.triangles = [
+      // x = 0 face (left)
+      [{"x": 0, "y": 0, "z": 0}, {"x": 0, "y": 0, "z": 5}, {"x": 0, "y": 1, "z": 5}],
+      [{"x": 0, "y": 0, "z": 0}, {"x": 0, "y": 1, "z": 5}, {"x": 0, "y": 1, "z": 0}],
 
-        {"x": 0, "y": 1, "z": 0},
-        {"x": 1, "y": 1, "z": 5},
-        {"x": 0, "y": 1, "z": 5},
-        {"x": 1, "y": 1, "z": 0},
+      // x = 1 face (right)
+      [{"x": 1, "y": 0, "z": 0}, {"x": 1, "y": 1, "z": 0}, {"x": 1, "y": 1, "z": 5}],
+      [{"x": 1, "y": 0, "z": 0}, {"x": 1, "y": 1, "z": 5}, {"x": 1, "y": 0, "z": 5}],
+
+      // y = 1 face (top)
+      [{"x": 0, "y": 1, "z": 0}, {"x": 0, "y": 1, "z": 5}, {"x": 1, "y": 1, "z": 0}],
+      [{"x": 0, "y": 1, "z": 5}, {"x": 1, "y": 1, "z": 5}, {"x": 1, "y": 1, "z": 0}],
+
+      // y = 0 face (bottom)
+      [{"x": 0, "y": 0, "z": 0}, {"x": 1, "y": 0, "z": 0}, {"x": 1, "y": 0, "z": 5}],
+      [{"x": 0, "y": 0, "z": 0}, {"x": 1, "y": 0, "z": 5}, {"x": 0, "y": 0, "z": 5}],
+
+      // z = 0 face (back)
+      [{"x": 0, "y": 0, "z": 0}, {"x": 0, "y": 1, "z": 0}, {"x": 1, "y": 1, "z": 0}],
+      [{"x": 0, "y": 0, "z": 0}, {"x": 1, "y": 1, "z": 0}, {"x": 1, "y": 0, "z": 0}],
+
+      // z = 5 face (front)
+      [{"x": 0, "y": 0, "z": 5}, {"x": 1, "y": 0, "z": 5}, {"x": 1, "y": 1, "z": 5}],
+      [{"x": 0, "y": 0, "z": 5}, {"x": 1, "y": 1, "z": 5}, {"x": 0, "y": 1, "z": 5}]
     ]
   }
 
@@ -368,16 +447,20 @@
         case "ArrowLeft":
           //****TO DO: Change camera x position move left
           camera.x-=0.1;
-          for(v of car.triangles) {
-            v.x -= 0.1
+          for(let triangle of car.triangles) {
+            for(let vert of triangle) {
+              vert.x -= 0.1
+            }
           }
           console.log("Left arrow pressed");
           break;
         case "ArrowRight":
           //****TO DO: Change camera x position move right
           camera.x+=0.1;
-          for(v of car.vertices) {
-            v.x += 0.1
+          for(let triangle of car.triangles) {
+            for(let vert of triangle) {
+              vert.x += 0.1
+            }
           }
           console.log("Right arrow pressed");
           break;
