@@ -105,37 +105,44 @@
     "scale": 1
   }
 
-  const lamp = {
-    "vertices": [
-        {"x": 0, "y": 0, "z": 0},
-        {"x": 1, "y": 0, "z": 0},
-        {"x": 1, "y": 0, "z": 2},
-        {"x": 0, "y": 0, "z": 2},
-
-        {"x": 0, "y": 4, "z": 0},
-        {"x": 1, "y": 4, "z": 0},
-        {"x": 1, "y": 4, "z": 2},
-        {"x": 0, "y": 4, "z": 2},
+  const endLaneLine = {
+    "triangles": [
+      [{"x": 0, "y": 0, "z": 0}, {"x": 0.25, "y": 0, "z": 0}, {"x": 0.25, "y": 0, "z": 2000}],
+      [{"x": 0, "y": 0, "z": 0}, {"x": 0, "y": 0, "z": 2000}, {"x": 0.25, "y": 0, "z": 2000}]
     ],
-    "edges": [
-        [0,1],
-        [0,3],
-        [1,2],
-        [2,3],
-
-        [4,5],
-        [4,7],
-        [5,6],
-        [6,7],
-
-        [0,4],
-        [1,5],
-        [2,6],
-        [3,7],
-    ],
-    "color": "white",
+    "color": "yellow",
     "scale": 1
   }
+
+  const lamp = {
+  "triangles": [
+    // x = 0 face (left)
+    [{"x": 0, "y": 0, "z": 0}, {"x": 0, "y": 0, "z": 2}, {"x": 0, "y": 4, "z": 2}],
+    [{"x": 0, "y": 0, "z": 0}, {"x": 0, "y": 4, "z": 2}, {"x": 0, "y": 4, "z": 0}],
+
+    // x = 1 face (right)
+    [{"x": 1, "y": 0, "z": 0}, {"x": 1, "y": 4, "z": 0}, {"x": 1, "y": 4, "z": 2}],
+    [{"x": 1, "y": 0, "z": 0}, {"x": 1, "y": 4, "z": 2}, {"x": 1, "y": 0, "z": 2}],
+
+    // y = 4 face (top)
+    [{"x": 0, "y": 4, "z": 0}, {"x": 0, "y": 4, "z": 2}, {"x": 1, "y": 4, "z": 0}],
+    [{"x": 0, "y": 4, "z": 2}, {"x": 1, "y": 4, "z": 2}, {"x": 1, "y": 4, "z": 0}],
+
+    // y = 0 face (bottom)
+    [{"x": 0, "y": 0, "z": 0}, {"x": 1, "y": 0, "z": 0}, {"x": 1, "y": 0, "z": 2}],
+    [{"x": 0, "y": 0, "z": 0}, {"x": 1, "y": 0, "z": 2}, {"x": 0, "y": 0, "z": 2}],
+
+    // z = 0 face (back)
+    [{"x": 0, "y": 0, "z": 0}, {"x": 0, "y": 4, "z": 0}, {"x": 1, "y": 4, "z": 0}],
+    [{"x": 0, "y": 0, "z": 0}, {"x": 1, "y": 4, "z": 0}, {"x": 1, "y": 0, "z": 0}],
+
+    // z = 2 face (front)
+    [{"x": 0, "y": 0, "z": 2}, {"x": 1, "y": 0, "z": 2}, {"x": 1, "y": 4, "z": 2}],
+    [{"x": 0, "y": 0, "z": 2}, {"x": 1, "y": 4, "z": 2}, {"x": 0, "y": 4, "z": 2}]
+  ],
+  "color": "white",
+  "scale": 1
+}
 
   let scene = {
     objs: [plane],
@@ -147,7 +154,7 @@
   let other_cars_front_right_vertex = []
 
   createLaneLines()
-  // createLamps()
+  createLamps()
   spawnOtherCars()
 
   scene.objs.push(...other_cars)
@@ -339,7 +346,6 @@
         let l2 = 1 - (l1+l3)
 
         if (betweenInts(l1, 0 , 1) && betweenInts(l2, 0, 1) && betweenInts(l3, 0, 1)){
-          console.log("test")
           setPixelColor(x, y, color)
         }
       }
@@ -358,40 +364,29 @@
       let x_collision = betweenInts(car_front_right_vertex.x, other_car_front_right_vertex.x - 1 , other_car_front_right_vertex.x + 1)
       let z_collision = betweenInts(car_front_right_vertex.z, other_car_front_right_vertex.z - 5, other_car_front_right_vertex.z + 5)
       if (x_collision && z_collision) {
-        crash()
+        reset()
       }
     }
-  }
-
-  function crash() {
-    console.log("CRASH")
-    //reset()
   }
 
   function reset() {
     camera = {x: 0, y: 5, z: -10};
     car.triangles = [
-      // x = 0 face (left)
       [{"x": 0, "y": 0, "z": 0}, {"x": 0, "y": 0, "z": 5}, {"x": 0, "y": 1, "z": 5}],
       [{"x": 0, "y": 0, "z": 0}, {"x": 0, "y": 1, "z": 5}, {"x": 0, "y": 1, "z": 0}],
 
-      // x = 1 face (right)
       [{"x": 1, "y": 0, "z": 0}, {"x": 1, "y": 1, "z": 0}, {"x": 1, "y": 1, "z": 5}],
       [{"x": 1, "y": 0, "z": 0}, {"x": 1, "y": 1, "z": 5}, {"x": 1, "y": 0, "z": 5}],
 
-      // y = 1 face (top)
       [{"x": 0, "y": 1, "z": 0}, {"x": 0, "y": 1, "z": 5}, {"x": 1, "y": 1, "z": 0}],
       [{"x": 0, "y": 1, "z": 5}, {"x": 1, "y": 1, "z": 5}, {"x": 1, "y": 1, "z": 0}],
 
-      // y = 0 face (bottom)
       [{"x": 0, "y": 0, "z": 0}, {"x": 1, "y": 0, "z": 0}, {"x": 1, "y": 0, "z": 5}],
       [{"x": 0, "y": 0, "z": 0}, {"x": 1, "y": 0, "z": 5}, {"x": 0, "y": 0, "z": 5}],
 
-      // z = 0 face (back)
       [{"x": 0, "y": 0, "z": 0}, {"x": 0, "y": 1, "z": 0}, {"x": 1, "y": 1, "z": 0}],
       [{"x": 0, "y": 0, "z": 0}, {"x": 1, "y": 1, "z": 0}, {"x": 1, "y": 0, "z": 0}],
 
-      // z = 5 face (front)
       [{"x": 0, "y": 0, "z": 5}, {"x": 1, "y": 0, "z": 5}, {"x": 1, "y": 1, "z": 5}],
       [{"x": 0, "y": 0, "z": 5}, {"x": 1, "y": 1, "z": 5}, {"x": 0, "y": 1, "z": 5}]
     ]
@@ -420,10 +415,14 @@
   function createLaneLines() {
     for(let i = 0; i < 400; i++) {
       scene.objs.push(laneLine)
-      scene.offset.push({x: 0.875, y: 0, z: i*3})
+      scene.offset.push({x: 1, y: 0, z: i*3})
       scene.objs.push(laneLine)
-      scene.offset.push({x: -1.375, y: 0, z: i*3})
+      scene.offset.push({x: -1.0, y: 0, z: i*3})
     }
+    scene.objs.push(endLaneLine)
+    scene.offset.push({x: -3.625, y: 0, z: 0})
+    scene.objs.push(endLaneLine)
+    scene.offset.push({x: 3.375, y: 0, z: 0})
   }
   
   function createLamps() {
