@@ -38,19 +38,19 @@
 
 <script>
 
-  //we add shapes (like lines) to this canvas
+
+// CANVAS SECTION
+// This section is to set up the canvas and constant values
   const canvas = document.getElementById("canvas");
   const ctx = canvas.getContext("2d");
   const limit = 1
   const spaceBetweenOtherCars = 30
   const otherCarsOffset = 30
-  const otherCarsCount = 100
+  const otherCarsCount = 66
 
-  function betweenInts(x, lower, upper){
-    return (x > lower && x < upper);
-  }
 
-  let camera = {x: 0, y: 5, z: -10};
+// OBJECTS SECTION
+// This section is for defining objects that will be used later
 
   const car = {
     "vertices": [
@@ -81,7 +81,7 @@
         [3,7],
     ],
     "color": "blue",
-    "scale": 1
+    "scale": {x: 1, y: 1, z: 1}
   }
 
   const plane = {
@@ -107,7 +107,7 @@
         [5,7],
     ],
     "color": "white",
-    "scale": 1
+    "scale": {x: 1, y: 1, z: 1}
   }
 
   const laneLine = {
@@ -119,7 +119,7 @@
         [0,1],
     ],
     "color": "white",
-    "scale": 1
+    "scale": {x: 1, y: 1, z: 1}
   }
 
   const lamp = {
@@ -151,13 +151,23 @@
         [3,7],
     ],
     "color": "white",
-    "scale": 1
+    "scale": {x: 1, y: 1, z: 1}
   }
 
+
+// SPAWNING OBJECTS SECTION
+// This section is for creating the scene data structure
+// it also populates all the objects and places them in the world
+
+  // This will hold all the objects and offsets to know where to place them in the world
+  // will be used to figure out where all the lines are
   let scene = {
     objs: [plane, car],
     offset: [{x:0,y:0,z:0}, {x:-.5,y:0,z:.5}]
   }
+
+  let camera = {x: 0, y: 5, z: -10};
+  let car_front_right_vertex
 
   let other_cars = []
   let other_cars_offset = []
@@ -167,8 +177,21 @@
   createLamps()
   spawnOtherCars()
 
-  scene.objs.push(...other_cars)
-  scene.offset.push(...other_cars_offset)
+
+// ANIMATE SECTION
+// This section holds the drive and draw functions
+// as well as animating
+
+  function drive() {
+    camera.z+=.3;
+    for(let v of car.vertices) {
+      v.z += .3  
+    }
+    car_front_right_vertex = car.vertices[1]
+
+    draw()  
+    checkForCollision()
+  }
 
   function draw(){
 
@@ -179,11 +202,11 @@
 
 
     let offsetIndex = 0
-    for (obj of scene.objs){
+    for (let obj of scene.objs){
       let offset = scene.offset[offsetIndex]
       for(let e = 0; e < obj.edges.length; e++) {
-        let v1 = {x: obj.vertices[obj.edges[e][0]].x + offset.x, y: obj.vertices[obj.edges[e][0]].y + offset.y, z: obj.vertices[obj.edges[e][0]].z + offset.z}
-        let v2 = {x: obj.vertices[obj.edges[e][1]].x + offset.x, y: obj.vertices[obj.edges[e][1]].y + offset.y, z: obj.vertices[obj.edges[e][1]].z + offset.z}
+        let v1 = {x: (obj.vertices[obj.edges[e][0]].x * obj.scale.x) + offset.x, y: (obj.vertices[obj.edges[e][0]].y * obj.scale.y) + offset.y, z: (obj.vertices[obj.edges[e][0]].z * obj.scale.z) + offset.z}
+        let v2 = {x: (obj.vertices[obj.edges[e][1]].x * obj.scale.x) + offset.x, y: (obj.vertices[obj.edges[e][1]].y * obj.scale.y) + offset.y, z: (obj.vertices[obj.edges[e][1]].z * obj.scale.z) + offset.z}
 
         let cam1 = { x: v1.x - camera.x, y: v1.y - camera.y, z: v1.z - camera.z }
         let cam2 = { x: v2.x - camera.x, y: v2.y - camera.y, z: v2.z - camera.z }
@@ -191,7 +214,6 @@
         let vert1_in_front = cam1.z > limit
         let vert2_in_front = cam2.z > limit
 
-        // Both vertices are behind --> dont render it
         if(!vert1_in_front && !vert2_in_front) continue;
 
         // If one is in front and the other behind we need to move the one behind in front of the camera in a way that doesn't look goofy
@@ -210,14 +232,54 @@
         p2.u = (cam2.x/cam2.z) * canvas.width + canvas.width / 2
         p2.v = (cam2.y/cam2.z) * canvas.height + canvas.height / 2
 
-        //console.log(p2)
-
         drawLine(p1.u, canvas.height - p1.v, p2.u, canvas.height - p2.v, obj.color)
       }
       offsetIndex+=1
     }
   }
 
+  setInterval(drive, 1000 / 60)
+
+
+// INPUT SECTION
+// This section is for handling the input and moving the car left and right
+
+  document.addEventListener("keydown", (event) => {
+
+    event.preventDefault();
+      switch (event.code) {
+      case "ArrowLeft":
+        if(car_front_right_vertex.x >= -1.5) {
+          camera.x-=0.1
+          for(let v of car.vertices) {
+            v.x -= 0.1
+          }
+        }
+        break;
+      case "ArrowRight":
+        if(car_front_right_vertex.x <= 3.5) {
+          camera.x+=0.1
+          for(let v of car.vertices) {
+            v.x += 0.1
+          }
+        }
+        break;
+      case "KeyR":
+        reset()
+        break;
+    }
+  });
+
+// HELPER FUNCTIONS
+// These are function that with the main functions
+
+
+  function betweenInts(x, lower, upper){
+    return (x > lower && x < upper);
+  }
+
+  // Finds the mid point of two points, one that is infront and one that is behind
+  // will place the new point at z = near plane limit
   function planeIntersect(front, back) {
       let new_back_vert = {}
       // t is a fraction of how much of the line is visable
@@ -242,73 +304,14 @@
     ctx.stroke()
   }
 
-
-  //this is how we detect events- 
-  // do nothing for now....
-    document.addEventListener("keydown", (event) => {
-
-      event.preventDefault();
-       switch (event.code) {
-        case "ArrowLeft":
-          if(car_front_right_vertex.x >= -1.5) {
-            camera.x-=0.1
-            for(v of car.vertices) {
-              v.x -= 0.1
-            }
-          }
-
-          console.log("Left arrow pressed");
-          break;
-        case "ArrowRight":
-          if(car_front_right_vertex.x <= 3.5) {
-            camera.x+=0.1
-            for(v of car.vertices) {
-              v.x += 0.1
-            }
-          }
-
-          console.log("Right arrow pressed");
-          break;
-        case "KeyR":
-          reset()
-          break;
-        default:
-          return; 
-      
-      }
-    });
-
-  function loop() {
-    drive();
-    requestAnimationFrame(loop);
-  }
-  requestAnimationFrame(loop);
-
-  function drive() {
-    camera.z+=0.3;
-    for(v of car.vertices) {
-      v.z += 0.3  
-    }
-
-    draw()  
-    checkForCollision()
-  }
-
   function checkForCollision() {
-    car_front_right_vertex = car.vertices[1]
-
-    for(other_car_front_right_vertex of other_cars_front_right_vertex) {
+    for(let other_car_front_right_vertex of other_cars_front_right_vertex) {
       let x_collision = betweenInts(car_front_right_vertex.x, other_car_front_right_vertex.x - 1 , other_car_front_right_vertex.x + 1)
       let z_collision = betweenInts(car_front_right_vertex.z, other_car_front_right_vertex.z - 5, other_car_front_right_vertex.z + 5)
       if (x_collision && z_collision) {
-        crash()
+        reset()
       }
     }
-  }
-
-  function crash() {
-    console.log("CRASH")
-    reset()
   }
 
   function reset() {
@@ -344,10 +347,12 @@
       other_cars_offset.push({x:-2.5 + (2 * randXPos),y:0,z:otherCarsOffset+(i*spaceBetweenOtherCars)})
       other_cars_front_right_vertex.push({x:-2.5 + (2 * randXPos) + 1.5,y:0,z:otherCarsOffset+(i*spaceBetweenOtherCars)+5})
     }
+    scene.objs.push(...other_cars)
+    scene.offset.push(...other_cars_offset)
   }
 
   function createLaneLines() {
-    for(let i = 0; i < 400; i++) {
+    for(let i = 0; i < 667; i++) {
       scene.objs.push(laneLine)
       scene.offset.push({x: 1, y: 0, z: i*3})
       scene.objs.push(laneLine)
@@ -356,9 +361,9 @@
   }
   
   function createLamps() {
-    for(let i = 0; i < 10; i++) {
-      x_1 = Math.random()
-      x_2 = Math.random()
+    for(let i = 0; i < 20; i++) {
+      let x_1 = Math.random()
+      let x_2 = Math.random()
       scene.objs.push(lamp)
       scene.offset.push({x: 4 + x_1, y: 0, z: i*100})
       scene.objs.push(lamp)
