@@ -231,8 +231,8 @@
     for (let obj of scene.objs){
       let offset = scene.offset[offsetIndex]
       for(let e = 0; e < obj.edges.length; e++) {
-        let v1 = {x: obj.vertices[obj.edges[e][0]].x + offset.x, y: obj.vertices[obj.edges[e][0]].y + offset.y, z: obj.vertices[obj.edges[e][0]].z + offset.z}
-        let v2 = {x: obj.vertices[obj.edges[e][1]].x + offset.x, y: obj.vertices[obj.edges[e][1]].y + offset.y, z: obj.vertices[obj.edges[e][1]].z + offset.z}
+        let v1 = {x: (obj.vertices[obj.edges[e][0]].x * obj.scale.x) + offset.x, y: (obj.vertices[obj.edges[e][0]].y * obj.scale.y) + offset.y, z: (obj.vertices[obj.edges[e][0]].z * obj.scale.z) + offset.z}
+        let v2 = {x: (obj.vertices[obj.edges[e][1]].x * obj.scale.x) + offset.x, y: (obj.vertices[obj.edges[e][1]].y * obj.scale.y) + offset.y, z: (obj.vertices[obj.edges[e][1]].z * obj.scale.z) + offset.z}
 
         let cam1 = { x: v1.x - camera.x, y: v1.y - camera.y, z: v1.z - camera.z }
         let cam2 = { x: v2.x - camera.x, y: v2.y - camera.y, z: v2.z - camera.z }

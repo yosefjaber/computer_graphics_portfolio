@@ -309,7 +309,6 @@
             }
           }
         }
-        console.log("Left arrow pressed");
         break;
       case "ArrowRight":
         if(car.triangles[6][2].x <= 4){
@@ -321,7 +320,6 @@
             }
           }
         }
-        console.log("Right arrow pressed");
         break;
       case "KeyR":
         reset()
@@ -444,7 +442,6 @@
   function resizeCanvas() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-    // draw();
   }
 
   function spawnOtherCars() {
