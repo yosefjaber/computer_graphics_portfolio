@@ -37,7 +37,7 @@
   </div>
 
 <script>
-
+"use strict";
 
 // CANVAS SECTION
 // This section is to set up the canvas and constant values
@@ -167,7 +167,7 @@
   }
 
   let camera = {x: 0, y: 5, z: -10};
-  let car_front_right_vertex
+  let car_front_right_vertex = car.vertices[1]
 
   let other_cars = []
   let other_cars_offset = []
@@ -183,14 +183,15 @@
 // as well as animating
 
   function drive() {
-    camera.z+=.3;
+    camera.z+=0.3;
     for(let v of car.vertices) {
-      v.z += .3  
+      v.z += 0.3  
     }
     car_front_right_vertex = car.vertices[1]
 
     draw()  
     checkForCollision()
+    if (camera.z > 1990) reset()
   }
 
   function draw(){
