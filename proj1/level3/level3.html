@@ -89,7 +89,7 @@
       [{"x": 0, "y": 0, "z": 5}, {"x": 1, "y": 1, "z": 5}, {"x": 0, "y": 1, "z": 5}]
     ],
     "color": "blue",
-    "scale": 10
+    "scale": {x: 1, y: 1, z: 1}
   }
 
   const plane = {
@@ -98,7 +98,7 @@
       [{"x": -500, "y": 0, "z": 2000}, {"x": 500, "y": 0, "z": 2000},  {"x": 500, "y": 0, "z": 0}]
     ],
     "color": "gray",
-    "scale": 1
+    "scale": {x: 1, y: 1, z: 1}
   }
 
   const laneLine = {
@@ -107,7 +107,7 @@
       [{"x": 0.125, "y": 0, "z": 0}, {"x": 0.125, "y": 0, "z": 2}, {"x": 0, "y": 0, "z": 2}]
     ],
     "color": "white",
-    "scale": 1
+    "scale": {x: 1, y: 1, z: 1}
   }
 
   const endLaneLine = {
@@ -116,7 +116,7 @@
       [{"x": 0, "y": 0, "z": 0}, {"x": 0, "y": 0, "z": 2000}, {"x": 0.25, "y": 0, "z": 2000}]
     ],
     "color": "yellow",
-    "scale": 1
+    "scale": {x: 1, y: 1, z: 1}
   }
 
   const lamp = {
@@ -146,7 +146,7 @@
     [{"x": 0, "y": 0, "z": 2}, {"x": 1, "y": 4, "z": 2}, {"x": 0, "y": 4, "z": 2}]
   ],
   "color": "white",
-  "scale": 1
+  "scale": {x: 1, y: 1, z: 1}
 }
 
 // SPAWNING OBJECTS SECTION
@@ -184,9 +184,9 @@
       let offset = scene.offset[offsetIndex]
       for(let triangle of obj.triangles) {
         
-        let vert0 = {x: triangle[0].x + offset.x - camera.x, y: triangle[0].y + offset.y - camera.y, z: triangle[0].z + offset.z - camera.z}
-        let vert1 = {x: triangle[1].x + offset.x - camera.x, y: triangle[1].y + offset.y - camera.y, z: triangle[1].z + offset.z - camera.z}
-        let vert2 = {x: triangle[2].x + offset.x - camera.x, y: triangle[2].y + offset.y - camera.y, z: triangle[2].z + offset.z - camera.z}
+        let vert0 = {x: (triangle[0].x * obj.scale.x) + offset.x - camera.x, y: (triangle[0].y * obj.scale.y) + offset.y - camera.y, z: (triangle[0].z * obj.scale.z) + offset.z - camera.z}
+        let vert1 = {x: (triangle[1].x * obj.scale.x) + offset.x - camera.x, y: (triangle[1].y * obj.scale.y) + offset.y - camera.y, z: (triangle[1].z * obj.scale.z) + offset.z - camera.z}
+        let vert2 = {x: (triangle[2].x * obj.scale.x) + offset.x - camera.x, y: (triangle[2].y * obj.scale.y) + offset.y - camera.y, z: (triangle[2].z * obj.scale.z) + offset.z - camera.z}
 
         makeTriangles(vert0, vert1, vert2, obj.color)
       }
