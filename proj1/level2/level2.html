@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>My First Rendering Algo</title>
+  <title>Level 2</title>
   <style>
     body {
       margin: 0;
@@ -33,13 +33,13 @@
   <canvas id="canvas"></canvas>
 
   <div id="info">
-    <b>Projection</b><br>
+    <b>Level 2</b><br>
   </div>
-
 <script>
 "use strict";
 
-  //
+// CANVAS SECTION
+// This section is to set up the canvas and constant values
   const canvas = document.getElementById("canvas");
   const ctx = canvas.getContext("2d");
 
@@ -50,13 +50,14 @@
   let seePixelOutline = false; 
 
   const limit = 1
-  const spaceBetweenOtherCars = 25
-  const otherCarsOffset = 40
-  const otherCarsCount = 100
+  const spaceBetweenOtherCars = 30
+  const otherCarsOffset = 30
+  const otherCarsCount = 66
 
-  let camera = {x: 0, y: 5, z: -10}
 
-  //Objects
+// OBJECTS SECTION
+// This section is for defining objects that will be used later
+
   const car = {
     "vertices": [
         {"x": 0, "y": 0, "z": 0},
@@ -86,7 +87,7 @@
         [3,7],
     ],
     "color": "blue",
-    "scale": 1
+    "scale": {x: 1, y: 1, z: 1}
   }
 
   const plane = {
@@ -112,7 +113,7 @@
         [5,7],
     ],
     "color": "white",
-    "scale": 1
+    "scale": {x: 1, y: 1, z: 1}
   }
 
   const laneLine = {
@@ -124,7 +125,7 @@
         [0,1],
     ],
     "color": "white",
-    "scale": 1
+    "scale": {x: 1, y: 1, z: 1}
   }
 
   const lamp = {
@@ -156,13 +157,23 @@
         [3,7],
     ],
     "color": "white",
-    "scale": 1
+    "scale": {x: 1, y: 1, z: 1}
   }
 
+
+// SPAWNING OBJECTS SECTION
+// This section is for creating the scene data structure
+// it also populates all the objects and places them in the world
+
+  // This will hold all the objects and offsets to know where to place them in the world
+  // will be used to figure out where all the lines are
   let scene = {
     objs: [plane, car],
     offset: [{x:0,y:0,z:0}, {x:-.5,y:0,z:.5}]
   }
+
+  let camera = {x: 0, y: 5, z: -10};
+  let car_front_right_vertex = car.vertices[1]
 
   let other_cars = []
   let other_cars_offset = []
@@ -172,42 +183,24 @@
   createLamps()
   spawnOtherCars()
 
-  scene.objs.push(...other_cars)
-  scene.offset.push(...other_cars_offset)
 
-  //ALL FUNCTIONS BELOW
-
-  function setPixelColor(u,v,color){
-    if (u < 0 || u >= cols || v < 0 || v >= rows) return;
-    pixelGrid[u][v] = color
-  }
-
-  function betweenInts(x, lower, upper){
-    return (x > lower && x < upper)
-  }
-
-  function setPixelColor(u,v,color){
-    if (u < 0 || u >= cols || v < 0 || v >= rows) return;
-    pixelGrid[u][v] = color
-  }
-
-  function loop() {
-    drive();
-    requestAnimationFrame(loop);
-  }
-  requestAnimationFrame(loop);
+// ANIMATE SECTION
+// This section holds the drive and draw functions
+// as well as animating
 
   function drive() {
     for (let u = 0; u < cols; u++) pixelGrid[u].fill("#050510");
 
     camera.z+=0.3;
-    for(v of car.vertices) {
+    for(let v of car.vertices) {
       v.z += 0.3  
     }
+    car_front_right_vertex = car.vertices[1]
 
     makeLines()
     draw() 
     checkForCollision()
+    if (camera.z > 1990) reset()
   }
 
   function draw(){
@@ -272,6 +265,46 @@
     }
   }
 
+  setInterval(drive, 1000 / 60)
+
+
+// INPUT SECTION
+// This section is for handling the input and moving the car left and right
+
+  document.addEventListener("keydown", (event) => {
+      switch (event.code) {
+      case "ArrowLeft":
+        if(car_front_right_vertex.x >= -1.5) {
+          camera.x-=0.1
+          for(let v of car.vertices) {
+            v.x -= 0.1
+          }
+        }
+        break;
+      case "ArrowRight":
+        if(car_front_right_vertex.x <= 3.5) {
+          camera.x+=0.1
+          for(let v of car.vertices) {
+            v.x += 0.1
+          }
+        }
+        break;
+      case "KeyR":
+        reset()
+        break;
+    }
+  });
+
+// HELPER FUNCTIONS
+// These are function that with the main functions
+
+
+  function betweenInts(x, lower, upper){
+    return (x > lower && x < upper);
+  }
+
+  // Finds the mid point of two points, one that is infront and one that is behind
+  // will place the new point at z = near plane limit
   function planeIntersect(front, back) {
       let new_back_vert = {}
       // t is a fraction of how much of the line is visable
@@ -282,47 +315,15 @@
       new_back_vert.z = limit
       return new_back_vert;
   }
-                                                                                                                                       
-  function drawLine(u1, v1, u2, v2, color) {
-    let x1 = u1, y1 = v1;
-    let x2 = u2, y2 = v2;
-
-    const steep = Math.abs(y2 - y1) > Math.abs(x2 - x1);
-    if (steep) {
-        [x1, y1] = [y1, x1];
-        [x2, y2] = [y2, x2];
-    }
-
-    if (x1 > x2) {
-        [x1, x2] = [x2, x1];
-        [y1, y2] = [y2, y1];
-    }
-
-    const m = (x2 === x1) ? 0 : (y2 - y1) / (x2 - x1);
-    const b = y1 - m * x1;
-
-    for (let x = x1; x <= x2; x++) {
-        const y = Math.round(m * x + b);
-        if (steep) setPixelColor(y, x, color);  
-        else       setPixelColor(x, y, color);
-    }
-  }
 
   function checkForCollision() {
-    car_front_right_vertex = car.vertices[1]
-
     for(let other_car_front_right_vertex of other_cars_front_right_vertex) {
       let x_collision = betweenInts(car_front_right_vertex.x, other_car_front_right_vertex.x - 1 , other_car_front_right_vertex.x + 1)
       let z_collision = betweenInts(car_front_right_vertex.z, other_car_front_right_vertex.z - 5, other_car_front_right_vertex.z + 5)
       if (x_collision && z_collision) {
-        crash()
+        reset()
       }
     }
-  }
-
-  function crash() {
-    console.log("CRASH")
-    reset()
   }
 
   function reset() {
@@ -358,10 +359,12 @@
       other_cars_offset.push({x:-2.5 + (2 * randXPos),y:0,z:otherCarsOffset+(i*spaceBetweenOtherCars)})
       other_cars_front_right_vertex.push({x:-2.5 + (2 * randXPos) + 1.5,y:0,z:otherCarsOffset+(i*spaceBetweenOtherCars)+5})
     }
+    scene.objs.push(...other_cars)
+    scene.offset.push(...other_cars_offset)
   }
 
   function createLaneLines() {
-    for(let i = 0; i < 400; i++) {
+    for(let i = 0; i < 667; i++) {
       scene.objs.push(laneLine)
       scene.offset.push({x: 1, y: 0, z: i*3})
       scene.objs.push(laneLine)
@@ -370,9 +373,9 @@
   }
   
   function createLamps() {
-    for(let i = 0; i < 10; i++) {
-      x_1 = Math.random()
-      x_2 = Math.random()
+    for(let i = 0; i < 20; i++) {
+      let x_1 = Math.random()
+      let x_2 = Math.random()
       scene.objs.push(lamp)
       scene.offset.push({x: 4 + x_1, y: 0, z: i*100})
       scene.objs.push(lamp)
@@ -380,47 +383,39 @@
     }
   }
 
-  //this is how we detect events- 
+  function drawLine(u1, v1, u2, v2, color) {
+    let x1 = u1, y1 = v1;
+    let x2 = u2, y2 = v2;
 
-  // do nothing for now....
-    document.addEventListener("keydown", (event) => {
+    const steep = Math.abs(y2 - y1) > Math.abs(x2 - x1);
+    if (steep) {
+        [x1, y1] = [y1, x1];
+        [x2, y2] = [y2, x2];
+    }
 
-      event.preventDefault();
-       switch (event.code) {
-        case "ArrowLeft":
-          if(car_front_right_vertex.x >= -1.5) {
-            camera.x-=0.1
-            for(v of car.vertices) {
-              v.x -= 0.1
-            }
-          }
+    if (x1 > x2) {
+        [x1, x2] = [x2, x1];
+        [y1, y2] = [y2, y1];
+    }
 
-          console.log("Left arrow pressed");
-          break;
-        case "ArrowRight":
-          if(car_front_right_vertex.x <= 3.5) {
-            camera.x+=0.1
-            for(v of car.vertices) {
-              v.x += 0.1
-            }
-          }
+    const m = (x2 === x1) ? 0 : (y2 - y1) / (x2 - x1);
+    const b = y1 - m * x1;
 
-          console.log("Right arrow pressed");
-          break;
-        case "KeyR":
-          reset()
-          break;
-        default:
-          return; 
-      
-      }
-    });
+    for (let x = x1; x <= x2; x++) {
+        const y = Math.round(m * x + b);
+        if (steep) setPixelColor(y, x, color);  
+        else       setPixelColor(x, y, color);
+    }
+  }
+
+  function setPixelColor(u,v,color){
+    if (u < 0 || u >= cols || v < 0 || v >= rows) return;
+    pixelGrid[u][v] = color
+  }
+
 
   window.addEventListener("resize", resizeCanvas);
   resizeCanvas();
-
-
-
 </script>
 </body>
 </html>

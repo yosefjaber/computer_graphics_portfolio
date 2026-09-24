@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>My First Rendering Algo</title>
+  <title>Level 1</title>
   <style>
     body {
       margin: 0;
@@ -33,7 +33,7 @@
   <canvas id="canvas"></canvas>
 
   <div id="info">
-    <b>Projection</b><br>
+    <b>Level 1</b><br>
   </div>
 
 <script>
@@ -246,8 +246,6 @@
 // This section is for handling the input and moving the car left and right
 
   document.addEventListener("keydown", (event) => {
-
-    event.preventDefault();
       switch (event.code) {
       case "ArrowLeft":
         if(car_front_right_vertex.x >= -1.5) {
