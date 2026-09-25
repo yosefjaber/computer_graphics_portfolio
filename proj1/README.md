@@ -137,6 +137,9 @@ For level 3 this function was responsible for triangle drawing:
 ```
 
 The way this calculates the barycentric coordinates (`l1, l2, and l3`) from solving the system of equations. 
+
+![alt text](image-6.png)
+
 ```
 l1 + l2 + l3       = 1
 l1V1 + l2V2 + l3V3 = p
@@ -348,3 +351,5 @@ How it looks in code:
     fillTriangle(p0, p1, p2, color)
   }
 ```
+
+## What would you do next?
