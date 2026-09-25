@@ -240,6 +240,8 @@
         let vert1_in_front = cam1.z > limit
         let vert2_in_front = cam2.z > limit
 
+        // if(!vert1_in_front || !vert2_in_front) continue;
+
         // Both vertices are behind --> dont render it
         if(!vert1_in_front && !vert2_in_front) continue;
 

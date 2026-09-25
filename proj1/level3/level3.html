@@ -228,6 +228,10 @@
     let vert1_in_front = v1.z >= limit
     let vert2_in_front = v2.z >= limit
 
+    // if(!vert0_in_front || !vert1_in_front || !vert2_in_front) {
+    //   return;
+    // }
+
     if(!vert0_in_front && !vert1_in_front && !vert2_in_front){
       return;
     }
