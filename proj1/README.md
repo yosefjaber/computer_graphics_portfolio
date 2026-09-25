@@ -10,7 +10,7 @@
 
 ## Object representation
 
-In level 1 and 2 all objects were represented as objects with four properties, `vertices`, `edges`, `color`, and `scale`. Vertices will define a 3d point in space and then edges will represent the lines between them. Color represents what the color of the line should be and the scale is what the x, y, and z dimesion of the vertice should be multiplied by before the offset is added to the point. 
+In level 1 and 2 all objects were represented as objects with four properties, `vertices`, `edges`, `color`, and `scale`. Vertices will define a 3d point in space and then edges will represent the lines between them. Color represents what the color of the line should be and the scale is what the x, y, and z dimension of the vertex should be multiplied by before the offset is added to the point. 
 
 ```js
 const laneLine = {
@@ -26,14 +26,26 @@ const laneLine = {
 }
 ```
 
-In level 3 all objects are defined as objects with three properties, `triangles`, `color` and `scale`. Triangles is an array of arrays of vertices where each element is another array that contains three three dimensional points representing a point of the triangle. Color is the color that the triangle should be colored. Scale is what the x, y, and z dimesion of the vertice should be multiplied by before the offset is added to the vertex. 
+In level 3 all objects are defined as objects with three properties, `triangles`, `color` and `scale`. Triangles is an array of arrays of vertices where each element is another array that contains three three dimensional points representing a point of the triangle. Color is the color that the triangle should be colored. Scale is what the x, y, and z dimension of the vertice should be multiplied by before the offset is added to the vertex. 
+
+```js
+const plane = {
+"triangles": [
+    [{"x": -500, "y": 0, "z": 0},    {"x": -500, "y": 0, "z": 2000}, {"x": 500, "y": 0, "z": 0}],
+    [{"x": -500, "y": 0, "z": 2000}, {"x": 500, "y": 0, "z": 2000},  {"x": 500, "y": 0, "z": 0}]
+],
+"color": "gray",
+"scale": {x: 1, y: 1, z: 1}
+}
+```
 
 
 ## Pin hole projection
 
-This project used pinhole projection for all three levels to know where to place the points on the screen. For the line projection it looked that the ends of the line and used a general formula that looked like this:
+This project used pinhole projection for all three levels to know where to place the points on the screen. For the line projection it looked at the ends of the line and used a general formula that looked like this:
 
-```
+```js
+let p1 = {}
 p1.u = (cam1.x/cam1.z) * cols + cols / 2
 p1.v = (cam1.y/cam1.z) * rows + rows / 2
 ```
@@ -72,7 +84,7 @@ function drawLine(u1, v1, u2, v2, color) {
 }
 ```
 
-First thing this function does is see if the coordinates it received are "steep" this means that the change is y is faster than the change in x. If it is it will swap the x and y coordinates so that it iterates over the dimension that "changes slower". Without this steep lines would iterate over the dimension that has "less change" and the line in turn would have less pixel resulting in gaps. 
+First thing this function does is see if the coordinates it received are "steep" this means that the change in y is faster than the change in x. If it is it will swap the x and y coordinates so that it iterates over the dimension that "changes slower". Without this steep lines would iterate over the dimension that has "less change" and the line in turn would have fewer pixels, resulting in gaps. 
 
 Line rendering without the steep check:
 
@@ -83,11 +95,11 @@ Line rendering with the steep check:
 ![alt text](image-1.png)
 
 
-It will also make sure that x1 is smaller than x2 so that the for loop isn't messed up. It will then loop through the x coordinates and place a pixel where it has too. 
+It will also make sure that x1 is smaller than x2 so that the for loop isn't messed up. It will then loop through the x coordinates and place a pixel where it has to. 
 
 ## Triangle Drawing
 
-For level 3 this function was responsible for traingle drawing:
+For level 3 this function was responsible for triangle drawing:
 
 ```js
   function fillTriangle(v1, v2, v3, color) {
@@ -161,20 +173,20 @@ Subtract V2:
 l1(V1 - V2) + l3(V3 - V2) = p - V2
 ```
 
-Give `(V1 - V2)`, `(V1 - V2)` and `(V1 - V2)` names: 
+Give `(V1 - V2)`, `(V3 - V2)` and `(p - V2)` names: 
 ```
 l1a1 + l3a3 = a2
 ```
 
 ![alt text](image-2.png)
 
-a1 and a3 are vertices with x and y coordintes which means there is an x equation and a y equation:
+a1 and a3 are vectors with x and y coordinates which means there is an x equation and a y equation:
 ```
 l1a1.x + l3a3.x = a2.x
 l1a1.y + l3a3.y = a2.y
 ```
 
-This gives up two equations and two unknows which can be solved as a linear combination and gives us this answer from the function:
+This gives us two equations and two unknowns which can be solved as a 2x2 linear system and gives us this answer from the function:
 ```js
 let l3 = (x1*y2 - x2*y1) / (x1*y3 - x3*y1)
 let l1 = (x2*y3 - x3*y2) / (x1*y3 - x3*y1)
@@ -182,7 +194,7 @@ let l1 = (x2*y3 - x3*y2) / (x1*y3 - x3*y1)
 
 ## Near Plane Problem
 
-How I solved the near plane in levels 1 and 2 was used these 2 function:
+How I solved the near plane in levels 1 and 2 was to use these two functions:
 
 ```js
 function makeLines() {
@@ -201,7 +213,7 @@ function makeLines() {
 
         // if(!vert1_in_front || !vert2_in_front) continue;
 
-        // Both vertices are behind --> dont render it
+        // Both vertices are behind --> Don't render it
         if(!vert1_in_front && !vert2_in_front) continue;
 
         // If one is in front and the other behind we need to move the one behind in front of the camera in a way that doesn't look goofy
@@ -242,13 +254,13 @@ For a simple line there are three possibilities:
 
 - Both Vertices are in front --> Render it normally
 
-- Both Vertices are behind --> Dont render it
+- Both Vertices are behind --> Don't render it
 
 - One vertex is in front and one is behind --> Find the intersection with the near plane and place the behind vertex there
 
 ![alt text](image-3.png)
 
-When doing it with triangles the solution is also quite simple expect now there are four possibilities we use the same `planeIntersect()` function:
+When doing it with triangles the solution is also quite simple except now there are four possibilities we use the same `planeIntersect()` function:
 
 - All three vertices are in front --> Render it normally
 
@@ -260,7 +272,7 @@ When doing it with triangles the solution is also quite simple expect now there 
 
 ![alt text](image-4.png)
 
-- All three vertices are behind --> Dont Draw it
+- All three vertices are behind --> Don't Draw it
 
 How it looks in code:
 ```js
