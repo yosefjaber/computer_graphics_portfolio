@@ -119,24 +119,9 @@ function draw() {
   m = multiply(rotateX(rotX), m);
   m = multiply(rotateZ(rotZ), m);
   const c = document.getElementById("c");
-  m = multiply(perspective(Math.PI/3, c.width / c.height, 0.1, 100), m);
+  m = multiply(perspective(Math.PI/3, c.width / c.height, 0.1, 10000), m);
 
   gl.uniformMatrix4fv(uMaster, false, m);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
   gl.drawElements(gl.TRIANGLES, idx.length, gl.UNSIGNED_INT, 0);
 }
-
-addEventListener("keydown", e => {
-    if (e.key === "ArrowLeft")  rotY   -= 0.1;
-    if (e.key === "ArrowRight") rotY   += 0.1;
-    if (e.key === "ArrowUp")    rotX -= 0.1;
-    if (e.key === "ArrowDown")  rotX += 0.1;
-
-    const f = .75;
-    if (e.code === "KeyW") { camX += Math.sin(rotY) * f; camZ -= Math.cos(rotY) * f; }
-    if (e.code === "KeyS") { camX -= Math.sin(rotY) * f; camZ += Math.cos(rotY) * f; }
-    if (e.code === "KeyD") { camX += Math.cos(rotY) * f; camZ += Math.sin(rotY) * f; }
-    if (e.code === "KeyA") { camX -= Math.cos(rotY) * f; camZ -= Math.sin(rotY) * f; }
-
-    draw();
-});
