@@ -8,15 +8,11 @@ gl.getExtension("OES_element_index_uint");
 const vs = `
     attribute vec3 aPos;
     attribute vec3 aCol;
-    uniform vec2 uView;
+    uniform mat4 uMaster;
     varying vec3 vCol;
-    
+
     void main() {
-        float a = uView.x, b = uView.y;
-        vec3 p = aPos;
-        p = vec3(cos(a)*p.x + sin(a)*p.z, p.y, -sin(a)*p.x + cos(a)*p.z);
-        p = vec3(p.x, cos(b)*p.y - sin(b)*p.z, sin(b)*p.y + cos(b)*p.z);
-        gl_Position = vec4(p * 0.1, 1.0);
+        gl_Position = uMaster * vec4(aPos, 1.0);
         vCol = aCol;
     }`;
 
@@ -31,7 +27,7 @@ const fs = `
     }
 `; //gl_FragColor must be set or else the color will be garbage
 
-function shader(type, src) { // Used to create and compile vertex shader and fragment shader
+function shader(type, src) { // used to create and compile vertex shader and fragment shader
   const s = gl.createShader(type);
   gl.shaderSource(s, src);
   gl.compileShader(s);
@@ -60,7 +56,36 @@ function addCube(cubeVerts, cubeIndices) {
     }
 }
 
-let yaw = 0.6, pitch = 0.5;
+function multiply(a, b) {   // returns a * b (b applied first)
+  const o = new Float32Array(16);
+  for (let c = 0; c < 4; c++)
+    for (let r = 0; r < 4; r++)
+      o[c*4+r] = a[r]*b[c*4] + a[4+r]*b[c*4+1] + a[8+r]*b[c*4+2] + a[12+r]*b[c*4+3];
+  return o;
+}
+
+let yaw = 0, pitch = 0;
+const m = new Float32Array([
+  1, 0, 0, 0, 
+  0, 1, 0, 0,
+  0, 0, 1, 0, 
+  0, 0, 0, 1,
+]);
+
+function translate(x, y, z) { return new Float32Array([1,0,0,0, 0,1,0,0, 0,0,1,0, x,y,z,1]); }
+function scale(s)           { return new Float32Array([s,0,0,0, 0,s,0,0, 0,0,s,0, 0,0,0,1]); }
+function rotateY(a) { const c=Math.cos(a), s=Math.sin(a); return new Float32Array([c,0,-s,0, 0,1,0,0, s,0,c,0, 0,0,0,1]); }
+function rotateX(a) { const c=Math.cos(a), s=Math.sin(a); return new Float32Array([1,0,0,0, 0,c,s,0, 0,-s,c,0, 0,0,0,1]); }
+function rotateZ(a) { const c=Math.cos(a), s=Math.sin(a); return new Float32Array([c,-s,0,0, s,c,0,0, 0,0,1,0, 0,0,0,1]); }
+function perspective(fov, aspect, near, far) {
+  const f = 1 / Math.tan(fov / 2), nf = 1 / (near - far);
+  return new Float32Array([
+    f/aspect, 0, 0, 0,
+    0, f, 0, 0,
+    0, 0, (far+near)*nf, -1,
+    0, 0, 2*far*near*nf, 0,
+  ]);
+}
 
 // Do all the rendering shenanigans in one function 
 function upload() {   // call once, after all addCube calls
@@ -81,27 +106,37 @@ function upload() {   // call once, after all addCube calls
   gl.clearColor(0.1, 0.1, 0.15, 1);
 }
 
-const uView = gl.getUniformLocation(prog, "uView");
+const uMaster = gl.getUniformLocation(prog, "uMaster");
 
-function draw() {     // call whenever the view changes
-  gl.uniform2f(uView, yaw, pitch);
+// every frame or key press
+let camX = 0, camY = 0, camZ = 20;
+let scl = 1;
+let rotX = 0, rotY = 0, rotZ = 0;
+
+function draw() {
+  let m = translate(-camX, -camY, -camZ);
+  m = multiply(rotateY(rotY), m);
+  m = multiply(rotateX(rotX), m);
+  m = multiply(rotateZ(rotZ), m);
+  const c = document.getElementById("c");
+  m = multiply(perspective(Math.PI/3, c.width / c.height, 0.1, 100), m);
+
+  gl.uniformMatrix4fv(uMaster, false, m);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
   gl.drawElements(gl.TRIANGLES, idx.length, gl.UNSIGNED_INT, 0);
 }
 
 addEventListener("keydown", e => {
-  if (e.key === "ArrowLeft")  yaw   -= 0.1;
-  if (e.key === "ArrowRight") yaw   += 0.1;
-  if (e.key === "ArrowUp")    pitch -= 0.1;
-  if (e.key === "ArrowDown")  pitch += 0.1;
-  draw();
-});
+    if (e.key === "ArrowLeft")  rotY   -= 0.1;
+    if (e.key === "ArrowRight") rotY   += 0.1;
+    if (e.key === "ArrowUp")    rotX -= 0.1;
+    if (e.key === "ArrowDown")  rotX += 0.1;
 
-// Will take in a 3d array representing where to translate the cubes
-function translation(offset) {
-    for(let i = 0; i < verts.length; i+=6) {
-        verts[i] += offset[0]   // x
-        verts[i+1] += offset[1] // y
-        verts[i+2] += offset[2] // z
-    }
-}
+    const f = .75;
+    if (e.code === "KeyW") { camX += Math.sin(rotY) * f; camZ -= Math.cos(rotY) * f; }
+    if (e.code === "KeyS") { camX -= Math.sin(rotY) * f; camZ += Math.cos(rotY) * f; }
+    if (e.code === "KeyD") { camX += Math.cos(rotY) * f; camZ += Math.sin(rotY) * f; }
+    if (e.code === "KeyA") { camX -= Math.cos(rotY) * f; camZ -= Math.sin(rotY) * f; }
+
+    draw();
+});

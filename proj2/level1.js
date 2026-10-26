@@ -27,7 +27,7 @@ addCube(attribute_array, index_array);                          // x = 0
 addCube(offset(attribute_array, 3, 6, 0), index_array);         // x = +3
 addCube(offset(attribute_array, -3, 6, 0), index_array);        // x = -3
 
-addCube(offset(attribute_array, 3, 6, 1), index_array);         // y = +3
+addCube(offset(attribute_array, 3, 6, 1), index_array);         // y =  +3
 addCube(offset(attribute_array, -3, 6, 1), index_array);        // y = -3
 
 upload();
