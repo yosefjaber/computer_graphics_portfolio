@@ -65,12 +65,6 @@ function multiply(a, b) {   // returns a * b (b applied first)
 }
 
 let yaw = 0, pitch = 0;
-const m = new Float32Array([
-  1, 0, 0, 0, 
-  0, 1, 0, 0,
-  0, 0, 1, 0, 
-  0, 0, 0, 1,
-]);
 
 function translate(x, y, z) { return new Float32Array([1,0,0,0, 0,1,0,0, 0,0,1,0, x,y,z,1]); }
 function scale(s)           { return new Float32Array([s,0,0,0, 0,s,0,0, 0,0,s,0, 0,0,0,1]); }
@@ -84,6 +78,22 @@ function perspective(fov, aspect, near, far) {
     0, f, 0, 0,
     0, 0, (far+near)*nf, -1,
     0, 0, 2*far*near*nf, 0,
+  ]);
+}
+
+function normalize(v) { const l = Math.hypot(...v); return v.map(a => a / l); }
+function cross(a, b) { return [a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0]]; }
+function dot(a, b)   { return a[0]*b[0] + a[1]*b[1] + a[2]*b[2]; }
+
+function lookAt(eye, target, up) {
+  const f = normalize([target[0]-eye[0], target[1]-eye[1], target[2]-eye[2]]);
+  const s = normalize(cross(f, up));
+  const u = cross(s, f);
+  return new Float32Array([
+    s[0], u[0], -f[0], 0,
+    s[1], u[1], -f[1], 0,
+    s[2], u[2], -f[2], 0,
+    -dot(s, eye), -dot(u, eye), dot(f, eye), 1,
   ]);
 }
 
@@ -109,19 +119,19 @@ function upload() {   // call once, after all addCube calls
 const uMaster = gl.getUniformLocation(prog, "uMaster");
 
 // every frame or key press
-let camX = 0, camY = 0, camZ = 20;
-let scl = 1;
+let camX = 0, camY = 0, camZ = 0;
+let scl = 20;
 let rotX = 0, rotY = 0, rotZ = 0;
 
 function draw() {
-  let m = translate(-camX, -camY, -camZ);
-  m = multiply(rotateY(rotY), m);
-  m = multiply(rotateX(rotX), m);
-  m = multiply(rotateZ(rotZ), m);
-  const c = document.getElementById("c");
-  m = multiply(perspective(Math.PI/3, c.width / c.height, 0.1, 10000), m);
+    let m = translate(-camX, -camY, -camZ);
+    m = multiply(rotateY(rotY), m);
+    m = multiply(rotateX(rotX), m);
+    m = multiply(rotateZ(rotZ), m);
+    const c = document.getElementById("c");
+    m = multiply(perspective(Math.PI/3, c.width / c.height, 0.1, 10000), m);
 
-  gl.uniformMatrix4fv(uMaster, false, m);
-  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-  gl.drawElements(gl.TRIANGLES, idx.length, gl.UNSIGNED_INT, 0);
+    gl.uniformMatrix4fv(uMaster, false, m);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    gl.drawElements(gl.TRIANGLES, idx.length, gl.UNSIGNED_INT, 0);
 }
