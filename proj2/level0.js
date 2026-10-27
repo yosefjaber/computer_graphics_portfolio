@@ -29,7 +29,7 @@ upload();
 
 function animate_scene(t) {
   const a = t * 0.001;
-  eye = [Math.sin(a) * 5, Math.sin(a) - Math.cos(a) * 5, Math.cos(a) * 5]
+  eye = [Math.sin(a) * 5, 5, Math.cos(a) * 5]
   drawView(lookAt(eye, [0,0,0], [0,1,0]));
   requestAnimationFrame(animate_scene);
 }
