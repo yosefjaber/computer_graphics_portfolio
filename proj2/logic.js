@@ -121,8 +121,37 @@ function drawView(view) {
 
 // Function that will convert obj text and return a obj with idx and verts
 function parseObj(obj_text) {
-  let lines = obj_text.split("\n") // Make it into an array based of new lines
-  for (line of lines) {
-    line.split(" ")
-  }
+    let obj = {idx: [], verts: []}
+
+    let lines = obj_text.split("\n") // Make it into an array based of new lines
+
+    for (let line of lines) {
+        let token = line.split(" ") // Makes an array based for each "token" (i guess)
+
+        if (token[0] == "v") { // Vertex line
+            let r = Math.random()
+            let g = Math.random()
+            let b = Math.random()
+            obj.verts.push(token[1])
+            obj.verts.push(token[2])
+            obj.verts.push(token[3])
+            obj.verts.push(r,g,b)
+        }
+
+        if (token[0] == "f") { // Face line
+            let i0 = token[1].split("/")[0] - 1
+            let i1 = token[2].split("/")[0] - 1
+            let i2 = token[3].split("/")[0] - 1
+
+            obj.idx.push(...[i0, i1, i2]) // push the first triangle
+
+            if (token[4] !== undefined) { // If it is a quad then make another triangle type shi
+                let i3 = token[4].split("/")[0] - 1
+                obj.idx.push(i0, i2, i3)
+            }
+        }
+
+    }
+
+    return obj
 }
