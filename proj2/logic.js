@@ -56,29 +56,22 @@ function addCube(cubeVerts, cubeIndices) {
     }
 }
 
-function multiply(a, b) {   // returns a * b (b applied first)
-  const o = new Float32Array(16);
-  for (let c = 0; c < 4; c++)
-    for (let r = 0; r < 4; r++)
-      o[c*4+r] = a[r]*b[c*4] + a[4+r]*b[c*4+1] + a[8+r]*b[c*4+2] + a[12+r]*b[c*4+3];
-  return o;
+function multiply(a, b) {   // returns a * b
+    const o = new Float32Array(16);
+    for (let c = 0; c < 4; c++)
+        for (let r = 0; r < 4; r++)
+            o[c*4+r] = a[r]*b[c*4] + a[4+r]*b[c*4+1] + a[8+r]*b[c*4+2] + a[12+r]*b[c*4+3];
+    return o;
 }
 
-let yaw = 0, pitch = 0;
-
-function translate(x, y, z) { return new Float32Array([1,0,0,0, 0,1,0,0, 0,0,1,0, x,y,z,1]); }
-function scale(s)           { return new Float32Array([s,0,0,0, 0,s,0,0, 0,0,s,0, 0,0,0,1]); }
-function rotateY(a) { const c=Math.cos(a), s=Math.sin(a); return new Float32Array([c,0,-s,0, 0,1,0,0, s,0,c,0, 0,0,0,1]); }
-function rotateX(a) { const c=Math.cos(a), s=Math.sin(a); return new Float32Array([1,0,0,0, 0,c,s,0, 0,-s,c,0, 0,0,0,1]); }
-function rotateZ(a) { const c=Math.cos(a), s=Math.sin(a); return new Float32Array([c,-s,0,0, s,c,0,0, 0,0,1,0, 0,0,0,1]); }
 function perspective(fov, aspect, near, far) {
-  const f = 1 / Math.tan(fov / 2), nf = 1 / (near - far);
-  return new Float32Array([
-    f/aspect, 0, 0, 0,
-    0, f, 0, 0,
-    0, 0, (far+near)*nf, -1,
-    0, 0, 2*far*near*nf, 0,
-  ]);
+    const f = 1 / Math.tan(fov / 2), nf = 1 / (near - far);
+    return new Float32Array([
+        f/aspect, 0, 0, 0,
+        0, f, 0, 0,
+        0, 0, (far+near)*nf, -1,
+        0, 0, 2*far*near*nf, 0,
+    ]);
 }
 
 function normalize(v) { const l = Math.hypot(...v); return v.map(a => a / l); }
@@ -86,9 +79,9 @@ function cross(a, b) { return [a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[
 function dot(a, b)   { return a[0]*b[0] + a[1]*b[1] + a[2]*b[2]; }
 
 function lookAt(eye, target, up) {
-  const f = normalize([target[0]-eye[0], target[1]-eye[1], target[2]-eye[2]]);
-  const s = normalize(cross(f, up));
-  const u = cross(s, f);
+  const f = normalize([target[0]-eye[0], target[1]-eye[1], target[2]-eye[2]]); // Find the forward vector
+  const s = normalize(cross(f, up));                                           // Find the right vector
+  const u = cross(s, f);                                                       // Find the up vector
   return new Float32Array([
     s[0], u[0], -f[0], 0,
     s[1], u[1], -f[1], 0,
@@ -118,20 +111,10 @@ function upload() {   // call once, after all addCube calls
 
 const uMaster = gl.getUniformLocation(prog, "uMaster");
 
-// every frame or key press
-let camX = 0, camY = 0, camZ = 0;
-let scl = 20;
-let rotX = 0, rotY = 0, rotZ = 0;
-
-function draw() {
-    let m = translate(-camX, -camY, -camZ);
-    m = multiply(rotateY(rotY), m);
-    m = multiply(rotateX(rotX), m);
-    m = multiply(rotateZ(rotZ), m);
+function drawView(view) {
     const c = document.getElementById("c");
-    m = multiply(perspective(Math.PI/3, c.width / c.height, 0.1, 10000), m);
-
-    gl.uniformMatrix4fv(uMaster, false, m);
+    const proj = perspective(Math.PI/3, c.width / c.height, 1, 10000);
+    gl.uniformMatrix4fv(uMaster, false, multiply(proj, view));
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.drawElements(gl.TRIANGLES, idx.length, gl.UNSIGNED_INT, 0);
 }
