@@ -118,3 +118,11 @@ function drawView(view) {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.drawElements(gl.TRIANGLES, idx.length, gl.UNSIGNED_INT, 0);
 }
+
+// Function that will convert obj text and return a obj with idx and verts
+function parseObj(obj_text) {
+  let lines = obj_text.split("\n") // Make it into an array based of new lines
+  for (line of lines) {
+    line.split(" ")
+  }
+}

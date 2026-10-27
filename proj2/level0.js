@@ -23,13 +23,13 @@ function offset(list, amount, skip, starting) {
   return out;
 }
 
-addCube(index_array, attribute_array);
+addCube(attribute_array, index_array);
 
 upload();
 
 function animate_scene(t) {
   const a = t * 0.001;
-  eye = [Math.sin(a) * 5, Math.tan(a/2), Math.cos(a) * 5]
+  eye = [Math.sin(a) * 5, 0.1 * (Math.tan(a/2) / Math.cos(a/2)), Math.cos(a) * 5]
   drawView(lookAt(eye, [0,0,0], [0,1,0]));
   requestAnimationFrame(animate_scene);
 }
