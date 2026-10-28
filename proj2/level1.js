@@ -69,6 +69,7 @@ function animate_scene(t) {
   const a = t * 0.001;
   const eye = [target[0] + R * Math.cos(a), H * Math.tan(a/3), target[2] + R * Math.sin(a)];
   drawView(lookAt(eye, target, [0, 1, 0]));
+  groups[0].inputs = [0,a*10,0,1,1,1,0,0,0]
   requestAnimationFrame(animate_scene);
 }
 requestAnimationFrame(animate_scene);
