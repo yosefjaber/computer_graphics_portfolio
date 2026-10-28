@@ -24,7 +24,7 @@ function offset(list, amount, skip, starting) {
 }
 
 
-addCube(obj.verts, obj.idx);
+addGroup(obj.verts, obj.idx, [0,0,0,1,1,1,0,0,0]);
 
 upload();
 

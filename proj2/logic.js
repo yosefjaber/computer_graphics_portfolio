@@ -1,5 +1,5 @@
 // gl is the handle to the GPU
-const gl = document.getElementById("c").getContext("webgl");
+const gl = document.getElementById("c").getContext("webgl2");
 gl.getExtension("OES_element_index_uint");
 
 // Vertex Shader runs once per vertex
@@ -9,10 +9,11 @@ const vs = `
     attribute vec3 aPos;
     attribute vec3 aCol;
     uniform mat4 uMaster;
+    uniform mat4 uView;
     varying vec3 vCol;
 
     void main() {
-        gl_Position = uMaster * vec4(aPos, 1.0);
+        gl_Position = uMaster * uView * vec4(aPos, 1.0);
         vCol = aCol;
     }`;
 
@@ -46,9 +47,10 @@ gl.useProgram(prog);
 // First three points are the position last three points are the color
 const verts = []
 const idx = [] // Keeps track of what indecies for a triangle 
+const groups = []
 
-// add_cube will add a new cube to our scene by adding to the verts and idx
-function addCube(cubeVerts, cubeIndices) {
+// add_mesh will add a new mesh to our scene by adding to the verts and idx
+function addMesh(cubeVerts, cubeIndices) {
     const offset = (verts.length / 6);  // vertices already stored (6 floats each)
     verts.push(...cubeVerts);
     for (const i of cubeIndices) {
@@ -56,22 +58,30 @@ function addCube(cubeVerts, cubeIndices) {
     }
 }
 
-function multiply(a, b) {   // returns a * b
-    const o = new Float32Array(16);
-    for (let c = 0; c < 4; c++)
-        for (let r = 0; r < 4; r++)
-            o[c*4+r] = a[r]*b[c*4] + a[4+r]*b[c*4+1] + a[8+r]*b[c*4+2] + a[12+r]*b[c*4+3];
+// adds a collection of meshes that share the same model matrix
+// inputs is an array that is the groups [x, y, z, sx, sy, sz, rotX, rotY, rotZ]
+function addGroup(verts, meshidx, inputs) {
+    const start = idx.length;          // read BEFORE addMesh appends
+    addMesh(verts, meshidx);
+    groups.push({ inputs, start, count: idx.length });
+}
+
+function multiply(a, b) {   // a * b, row-major
+    const o = [];
+    for (let r = 0; r < 4; r++)
+        for (let c = 0; c < 4; c++)
+            o[r*4+c] = a[r*4]*b[c] + a[r*4+1]*b[4+c] + a[r*4+2]*b[8+c] + a[r*4+3]*b[12+c];
     return o;
 }
 
 function perspective(fov, aspect, near, far) {
     const f = 1 / Math.tan(fov / 2), nf = 1 / (near - far);
-    return new Float32Array([
-        f/aspect, 0, 0, 0,
-        0, f, 0, 0,
-        0, 0, (far+near)*nf, -1,
-        0, 0, 2*far*near*nf, 0,
-    ]);
+    return [
+        f/aspect, 0, 0,               0,
+        0,        f, 0,               0,
+        0,        0, (far+near)*nf,   2*far*near*nf,
+        0,        0, -1,              0,
+    ];
 }
 
 function normalize(v) { const l = Math.hypot(...v); return v.map(a => a / l); }
@@ -79,15 +89,60 @@ function cross(a, b) { return [a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[
 function dot(a, b)   { return a[0]*b[0] + a[1]*b[1] + a[2]*b[2]; }
 
 function lookAt(eye, target, up) {
-  const f = normalize([target[0]-eye[0], target[1]-eye[1], target[2]-eye[2]]); // Find the forward vector
-  const s = normalize(cross(f, up));                                           // Find the right vector
-  const u = cross(s, f);                                                       // Find the up vector
-  return new Float32Array([
-    s[0], u[0], -f[0], 0,
-    s[1], u[1], -f[1], 0,
-    s[2], u[2], -f[2], 0,
-    -dot(s, eye), -dot(u, eye), dot(f, eye), 1,
-  ]);
+    const f = normalize([target[0]-eye[0], target[1]-eye[1], target[2]-eye[2]]);
+    const s = normalize(cross(f, up));
+    const u = cross(s, f);
+    return [
+         s[0],  s[1],  s[2], -dot(s, eye),
+         u[0],  u[1],  u[2], -dot(u, eye),
+        -f[0], -f[1], -f[2],  dot(f, eye),
+         0,     0,     0,     1,
+    ];
+}
+
+// Sets the position of a matrix
+function setPos(x, y, z) {
+    return [
+        1, 0, 0, x,
+        0, 1, 0, y,
+        0, 0, 1, z,
+        0, 0, 0, 1,
+    ]
+}
+
+function setScale(sx, sy, sz) {
+    return [
+        sx, 0 , 0 , 0,
+        0 , sy, 0 , 0,
+        0 , 0 , sz, 0,
+        0 , 0 , 0 , 1,
+    ]
+}
+
+function setRotation(rx, ry, rz) {
+    const cX = Math.cos(rx), sX = Math.sin(rx);
+    const cY = Math.cos(ry), sY = Math.sin(ry);
+    const cZ = Math.cos(rz), sZ = Math.sin(rz);
+
+    const Rx = [
+        1, 0,  0,  0,
+        0, cX, -sX, 0,
+        0, sX, cX, 0,
+        0, 0,  0,  1,
+    ];
+    const Ry = [
+         cY, 0, sY, 0,
+         0,  1, 0,  0,
+        -sY, 0, cY, 0,
+         0,  0, 0,  1,
+    ];
+    const Rz = [
+        cZ, -sZ, 0, 0,
+        sZ,  cZ, 0, 0,
+        0,   0,  1, 0,
+        0,   0,  0, 1,
+    ];
+    return multiply(multiply(Rz, Ry), Rx);
 }
 
 // Do all the rendering shenanigans in one function 
@@ -110,13 +165,26 @@ function upload() {   // call once, after all addCube calls
 }
 
 const uMaster = gl.getUniformLocation(prog, "uMaster");
+const uView = gl.getUniformLocation(prog, "uView");
+
+// Builds a modelMatrix given your inputs
+function buildModel(x, y, z, sx, sy, sz, rotX, rotY, rotZ) {
+    return multiply(
+        setPos(x, y, z),
+        multiply(setRotation(rotX, rotY, rotZ), setScale(sx, sy, sz))
+    );
+}
 
 function drawView(view) {
     const c = document.getElementById("c");
-    const proj = perspective(Math.PI/3, c.width / c.height, 1, 10000);
-    gl.uniformMatrix4fv(uMaster, false, multiply(proj, view));
+    const proj = perspective(Math.PI/3, c.width / c.height, 1, 100000);
+    gl.uniformMatrix4fv(uMaster, true, new Float32Array(multiply(proj, view)));
+
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    gl.drawElements(gl.TRIANGLES, idx.length, gl.UNSIGNED_INT, 0);
+    for (const g of groups) {
+        gl.uniformMatrix4fv(uView, true, new Float32Array(buildModel(...g.inputs)));
+        gl.drawElements(gl.TRIANGLES, g.count, gl.UNSIGNED_INT, g.start * 4);  // offset is in bytes
+    }
 }
 
 // Function that will convert obj text and return a obj with idx and verts
@@ -124,10 +192,8 @@ function parseObj(obj_text) {
     let obj = {idx: [], verts: []}
 
     let lines = obj_text.split("\n") // Make it into an array based of new lines
-
     for (let line of lines) {
         let token = line.split(" ") // Makes an array based for each "token" (i guess)
-
         if (token[0] == "v") { // Vertex line
             let r = Math.random()
             let g = Math.random()

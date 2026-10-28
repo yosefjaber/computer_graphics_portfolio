@@ -23,8 +23,8 @@ attribute_array2 = [-1,14,-1, 1,0,0,
    1,16, 1, 1,1,1, // Front
   -1,16, 1, 0.5,0.5,0.5] // Front
 
-let col = 50;
-let row = 50;
+let col = 800;
+let row = 800;
 let row_offset = 3;
 let col_offset = 3;
 
