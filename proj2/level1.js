@@ -23,10 +23,13 @@ attribute_array2 = [-1,14,-1, 1,0,0,
    1,16, 1, 1,1,1, // Front
   -1,16, 1, 0.5,0.5,0.5] // Front
 
-let col = 800;
-let row = 800;
+let col = 100;
+let row = 100;
 let row_offset = 3;
 let col_offset = 3;
+
+let master_attribute_array = []
+let master_index_array = []
 
 for (let i = 0; i < row; i++) {
   for (let v = 0; v < col; v++) {
@@ -37,7 +40,8 @@ for (let i = 0; i < row; i++) {
     let fun2 = Math.random();
     let yScale = Math.random();
     let multiplier = 20;
-    addCube( [
+
+    master_attribute_array.push(...[
               -1 + (i * row_offset),-1,                        -1 + (v * col_offset), fun2,g,b,
                1 + (i * row_offset),-1,                        -1 + (v * col_offset), b,fun,g,
                1 + (i * row_offset), 1 + (yScale * multiplier),-1 + (v * col_offset), g,b,fun2,
@@ -46,12 +50,12 @@ for (let i = 0; i < row; i++) {
                1 + (i * row_offset),-1,                         1 + (v * col_offset), g,fun,fun2,
                1 + (i * row_offset), 1 + (yScale * multiplier), 1 + (v * col_offset), r,fun2,b,
               -1 + (i * row_offset), 1 + (yScale * multiplier), 1 + (v * col_offset), b,fun,g,
-            ]
-              , index_array)
+            ])
+
+    master_index_array.push(...index_array.map(n => n + master_attribute_array.length/6 - 8))
   }
 }
-
-//addCube(attribute_array2, index_array)
+addGroup(master_attribute_array, master_index_array, [0,0,0,1,1,1,0,0,0])
 
 upload();
 

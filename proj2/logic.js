@@ -50,20 +50,18 @@ const idx = [] // Keeps track of what indecies for a triangle
 const groups = []
 
 // add_mesh will add a new mesh to our scene by adding to the verts and idx
-function addMesh(cubeVerts, cubeIndices) {
-    const offset = (verts.length / 6);  // vertices already stored (6 floats each)
-    verts.push(...cubeVerts);
-    for (const i of cubeIndices) {
-        idx.push(i + offset);
-    }
+function addMesh(meshVerts, meshIdx) {
+    const offset = verts.length / 6;
+    for (let k = 0; k < meshVerts.length; k++) verts.push(meshVerts[k]);
+    for (let k = 0; k < meshIdx.length; k++)   idx.push(meshIdx[k] + offset);
 }
 
 // adds a collection of meshes that share the same model matrix
 // inputs is an array that is the groups [x, y, z, sx, sy, sz, rotX, rotY, rotZ]
-function addGroup(verts, meshidx, inputs) {
-    const start = idx.length;          // read BEFORE addMesh appends
-    addMesh(verts, meshidx);
-    groups.push({ inputs, start, count: idx.length });
+function addGroup(meshVerts, meshIdx, inputs) {
+    const start = idx.length;
+    addMesh(meshVerts, meshIdx);
+    groups.push({ inputs, start, count: meshIdx.length });
 }
 
 function multiply(a, b) {   // a * b, row-major
