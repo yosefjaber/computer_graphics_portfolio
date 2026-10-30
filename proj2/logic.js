@@ -181,7 +181,20 @@ function drawView(view) {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     for (const g of groups) {
         gl.uniformMatrix4fv(uView, true, new Float32Array(buildModel(...g.inputs)));
-        gl.drawElements(gl.TRIANGLES, g.count, gl.UNSIGNED_INT, g.start * 4);  // offset is in bytes
+
+        // so we dont hit the 3 mil limit check if we are trying to do more than 3 mil on draw 3 mil at a time
+        const MAX_INDICES = 3_000_000; // 3 mil indices per draw
+        for (let offset = 0; offset < g.count; offset += MAX_INDICES) {
+            const count = Math.min(MAX_INDICES, g.count - offset);
+            console.log("Drawing:", count, "indices; group total:", g.count);
+            gl.drawElements(
+                gl.TRIANGLES,
+                count,
+                gl.UNSIGNED_INT,
+                (g.start + offset) * Uint32Array.BYTES_PER_ELEMENT
+            );
+        }
+
     }
 }
 
