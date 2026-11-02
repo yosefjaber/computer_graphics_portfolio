@@ -47,7 +47,7 @@ gl.useProgram(prog);
 // First three points are the position last three points are the color
 const verts = []
 const idx = [] // Keeps track of what indecies for a triangle 
-const groups = []
+const groups = {}
 
 // add_mesh will add a new mesh to our scene by adding to the verts and idx
 function addMesh(meshVerts, meshIdx) {
@@ -58,10 +58,10 @@ function addMesh(meshVerts, meshIdx) {
 
 // adds a collection of meshes that share the same model matrix
 // inputs is an array that is the groups [x, y, z, sx, sy, sz, rotX, rotY, rotZ]
-function addGroup(meshVerts, meshIdx, inputs) {
+function addGroup(meshVerts, meshIdx, inputs, groupName) {
     const start = idx.length;
     addMesh(meshVerts, meshIdx);
-    groups.push({ inputs, start, count: meshIdx.length });
+    groups[groupName] = ({ inputs, start, count: meshIdx.length });
 }
 
 function multiply(a, b) {   // a * b, row-major
@@ -179,7 +179,7 @@ function drawView(view) {
     gl.uniformMatrix4fv(uMaster, true, new Float32Array(multiply(proj, view)));
 
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    for (const g of groups) {
+    for (const g of Object.values(groups)) {
         gl.uniformMatrix4fv(uView, true, new Float32Array(buildModel(...g.inputs)));
 
         // so we dont hit the 3 mil limit check if we are trying to do more than 3 mil on draw 3 mil at a time

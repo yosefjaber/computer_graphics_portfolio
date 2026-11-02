@@ -5,7 +5,7 @@ async function loadPixels(path) {
     return ctx.getImageData(0, 0, bmp.width, bmp.height);   // { data, width, height }
 }
 
-const img = await loadPixels("output.png");
+const img = await loadPixels("test1.png");
 console.log(img.width, img.height);
 
 const red = img.data[(10 * img.width + 5) * 4];   // red value of pixel (5, 10)

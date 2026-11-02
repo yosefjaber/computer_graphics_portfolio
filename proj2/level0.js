@@ -23,14 +23,16 @@ function offset(list, amount, skip, starting) {
   return out;
 }
 
+let manipulate = [0,0,0,1,1,1,0,0,0]
 
-addGroup(obj.verts, obj.idx, [0,0,0,1,1,1,0,0,0]);
+addGroup(obj.verts, obj.idx, manipulate, "dontOpen");
 
 upload();
 
 function animate_scene(t) {
   const a = t * 0.001;
   eye = [Math.sin(a) * 15,Math.tan(a/4), Math.cos(a) * 15]
+  groups["dontOpen"].inputs = [0, 0, 0, 1, 1, 1, 0, 0, a];
   drawView(lookAt(eye, [0,0,0], [0,1,0]));
   requestAnimationFrame(animate_scene);
 }
