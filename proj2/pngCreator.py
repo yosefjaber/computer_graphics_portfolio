@@ -7,7 +7,7 @@ from PIL import Image
 import matplotlib.pyplot as plt  
 
 R, G, B, A = 255, 0, 0, 128
-W, H = 500, 500
+W, H = 1000, 1000
 perlin = True
 
 img = Image.new("RGBA", (W, H))
@@ -51,7 +51,7 @@ def generate_perlin_noise(width, height, scale=10.0, octaves=3, persistence=0.5,
     
     return noise_grid 
 
-if perlin: alpha2 = generate_perlin_noise(width = W, height = H, scale=120, octaves=10).tolist()
+if perlin: alpha2 = generate_perlin_noise(width = W, height = H, scale=150, octaves=5).tolist()
 
 for row in range(H):
     for col in range(W):

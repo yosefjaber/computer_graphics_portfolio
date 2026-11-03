@@ -232,3 +232,45 @@ function parseObj(obj_text) {
 
     return obj
 }
+
+
+// every p here is an array representing [x, y, z]
+// t is a float from 0 to 1
+function lerp(p0, p1, t) {
+    return [
+        p0[0] + (p1[0] - p0[0]) * t,
+        p0[1] + (p1[1] - p0[1]) * t,
+        p0[2] + (p1[2] - p0[2]) * t,
+    ];
+}
+
+function fivePointBezierCurve(p0, p1, p2, p3, p4, t) {
+    const a = lerp(p0, p1, t);
+    const b = lerp(p1, p2, t);
+    const c = lerp(p2, p3, t);
+    const d = lerp(p3, p4, t);
+
+    const e = lerp(a, b, t);
+    const f = lerp(b, c, t);
+    const g = lerp(c, d, t);
+
+    const h = lerp(e, f, t);
+    const i = lerp(f, g, t);
+
+    return lerp(h, i, t);
+}
+
+function BezierCurveN(points, t) {
+    // base case
+    if(points.length <= 1) {
+        return points[0];
+    }
+
+    let new_points = []
+
+    for(let i = 0; i < points.length - 1; i++) {
+        new_points.push(lerp(points[i], points[i+1], t))
+    }
+    
+    return BezierCurveN(new_points, t)
+}
