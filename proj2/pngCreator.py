@@ -51,7 +51,7 @@ def generate_perlin_noise(width, height, scale=10.0, octaves=3, persistence=0.5,
     
     return noise_grid 
 
-if perlin: alpha2 = generate_perlin_noise(width = W, height = H, scale=150, octaves=5).tolist()
+if perlin: alpha2 = generate_perlin_noise(width = W, height = H, scale=100, octaves=6).tolist()
 
 for row in range(H):
     for col in range(W):
@@ -59,9 +59,9 @@ for row in range(H):
         cs = math.cos(((row * col))/1000)
 
         # Should be between 0 - 255
-        red   = (((math.sin(col/100 + row/20) + 1) / 2) * random.random() * 255)
-        green = (((math.cos(col/151 + row/10) + 1) / 2) * 255)
-        blue  = (((math.sin(col/4 + row/30) + 1) / 2) * random.random() * 255)
+        red   = (((math.sin(col/100 + row/20) + 1) / 2) * random.random() * 255) * alpha2[row][col]
+        green = (((math.cos(col/151 + row/10) + 1) / 2) * 255) * alpha2[row][col]
+        blue  = (((math.sin(col/4 + row/30) + 1) / 2) * random.random() * 255) * alpha2[row][col]
         if perlin: 
             alpha = alpha2[row][col] * 255
         else:

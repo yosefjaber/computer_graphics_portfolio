@@ -1,10 +1,3 @@
-async function loadPixels(path) {
-    const bmp = await createImageBitmap(await (await fetch(path, { cache: "no-store" })).blob());
-    const ctx = new OffscreenCanvas(bmp.width, bmp.height).getContext("2d");
-    ctx.drawImage(bmp, 0, 0);
-    return ctx.getImageData(0, 0, bmp.width, bmp.height);   // { data, width, height }
-}
-
 const img = await loadPixels("output.png");
 console.log(img.width, img.height);
 

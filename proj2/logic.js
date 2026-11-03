@@ -8,12 +8,11 @@ gl.getExtension("OES_element_index_uint");
 const vs = `
     attribute vec3 aPos;
     attribute vec3 aCol;
-    uniform mat4 uMaster;
     uniform mat4 uView;
     varying vec3 vCol;
 
     void main() {
-        gl_Position = uMaster * uView * vec4(aPos, 1.0);
+        gl_Position = uView * vec4(aPos, 1.0);
         vCol = aCol;
     }`;
 
@@ -159,11 +158,11 @@ function upload() {   // call once, after all addCube calls
   gl.vertexAttribPointer(aCol, 3, gl.FLOAT, false, 24, 12);
 
   gl.enable(gl.DEPTH_TEST);
+  gl.enable(gl.CULL_FACE);
   gl.clearColor(0.1, 0.1, 0.15, 1);
 }
 
-const uMaster = gl.getUniformLocation(prog, "uMaster");
-const uView = gl.getUniformLocation(prog, "uView");
+let uMVP = gl.getUniformLocation(prog, "uView");
 
 // Builds a modelMatrix given your inputs
 function buildModel(x, y, z, sx, sy, sz, rotX, rotY, rotZ) {
@@ -176,17 +175,18 @@ function buildModel(x, y, z, sx, sy, sz, rotX, rotY, rotZ) {
 function drawView(view) {
     const c = document.getElementById("c");
     const proj = perspective(Math.PI/3, c.width / c.height, 1, 100000);
-    gl.uniformMatrix4fv(uMaster, true, new Float32Array(multiply(proj, view)));
+    const projView = multiply(proj, view);
 
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     for (const g of Object.values(groups)) {
-        gl.uniformMatrix4fv(uView, true, new Float32Array(buildModel(...g.inputs)));
+        const mvp = multiply(projView, buildModel(...g.inputs));
+        gl.uniformMatrix4fv(uMVP, true, new Float32Array(mvp));
 
         // so we dont hit the 3 mil limit check if we are trying to do more than 3 mil on draw 3 mil at a time
         const MAX_INDICES = 3_000_000; // 3 mil indices per draw
         for (let offset = 0; offset < g.count; offset += MAX_INDICES) {
             const count = Math.min(MAX_INDICES, g.count - offset);
-            console.log("Drawing:", count, "indices; group total:", g.count);
+            //console.log("Drawing:", count, "indices; group total:", g.count);
             gl.drawElements(
                 gl.TRIANGLES,
                 count,
@@ -289,4 +289,11 @@ function posAndRotCurve(controlPoints, a, duration) {
     let rotX = -Math.atan2(y, Math.hypot(x, z));
 
     return [pos, rotX, rotY]
+}
+
+async function loadPixels(path) {
+    const bmp = await createImageBitmap(await (await fetch(path, { cache: "no-store" })).blob());
+    const ctx = new OffscreenCanvas(bmp.width, bmp.height).getContext("2d");
+    ctx.drawImage(bmp, 0, 0);
+    return ctx.getImageData(0, 0, bmp.width, bmp.height);   // { data, width, height }
 }
