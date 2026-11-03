@@ -14,15 +14,6 @@ attribute_array = [-1,-1,-1, 1,0,0,
    1, 1, 1, 1,1,1,
   -1, 1, 1, 0.5,0.5,0.5]
 
-
-function offset(list, amount, skip, starting) {
-  const out = [...list];
-  for (let i = starting; i < out.length; i += skip) {
-    out[i] += amount;
-  }
-  return out;
-}
-
 let manipulate = [0,0,0,1,1,1,0,0,0]
 
 addGroup(obj.verts, obj.idx, manipulate, "dontOpen");

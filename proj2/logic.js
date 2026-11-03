@@ -274,3 +274,19 @@ function BezierCurveN(points, t) {
     
     return BezierCurveN(new_points, t)
 }
+
+// returns the position at time a, duration is a constant that will change how fast it moves
+function posAndRotCurve(controlPoints, a, duration) {
+    const s    = (a/duration) % 1;
+    const pos  = BezierCurveN(controlPoints, s);
+    const prev = BezierCurveN(controlPoints, Math.max(s - 0.001, 0));
+    const next = BezierCurveN(controlPoints, Math.min(s + 0.001, 1));
+
+    const x = next[0] - prev[0];
+    const y = next[1] - prev[1];
+    const z = next[2] - prev[2];
+    let rotY = Math.atan2(x, z);
+    let rotX = -Math.atan2(y, Math.hypot(x, z));
+
+    return [pos, rotX, rotY]
+}
