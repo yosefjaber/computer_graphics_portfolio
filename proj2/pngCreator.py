@@ -12,6 +12,9 @@ perlin = True
 
 img = Image.new("RGBA", (W, H))
 
+# Adapted from:
+# Py4U, "Python Random Map Generation with Perlin Noise"
+# https://www.py4u.org/blog/python-random-map-generation-with-perlin-noise/
 def generate_perlin_noise(width, height, scale=10.0, octaves=3, persistence=0.5, lacunarity=2.0):  
     """  
     Generate a 2D Perlin Noise grid.  
