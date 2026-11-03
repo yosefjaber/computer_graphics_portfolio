@@ -49,7 +49,7 @@ for(let r = 0; r < img.height; r++) {
         master_index_array.push(...index_array.map(n => n + master_attribute_array.length/6 - 8))
     }
 }
-addGroup(master_attribute_array, master_index_array, [0,0,0,1,1,1,0,0,0])
+addGroup(master_attribute_array, master_index_array, [0,0,0,1,1,1,0,0,0], "terrain")
 upload();
 
 let time = 0;
@@ -62,7 +62,6 @@ function animate_scene(t) {
   const a = t * 0.001;
   const eye = [target[0] + R * Math.cos(a), H * Math.tan(a/3), target[2] + R * Math.sin(a)];
   drawView(lookAt(eye, target, [0, 1, 0]));
-  groups[0].inputs = [0,0,0,1,1,1,0,0,0]
   requestAnimationFrame(animate_scene);
 }
 requestAnimationFrame(animate_scene);

@@ -24,7 +24,7 @@ const fs = `
     varying vec3 vCol; // Already interpolated from our vertex shader
 
     void main() { 
-        gl_FragColor = vec4(vCol, 1.0); 
+        gl_FragColor = vec4(vCol, 1.0);
     }
 `; //gl_FragColor must be set or else the color will be garbage
 
