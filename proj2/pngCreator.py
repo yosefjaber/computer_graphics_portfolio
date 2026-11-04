@@ -44,8 +44,8 @@ def generate_perlin_noise(width, height, scale=10.0, octaves=3, persistence=0.5,
                 octaves=octaves,  
                 persistence=persistence,  
                 lacunarity=lacunarity,  
-                repeatx=1024, repeaty=1024,  # Tileable noise (optional)  
-                base=42  # Seed (change for different maps)  
+                repeatx=1024, repeaty=1024,  # Tileable noise (optional)
+                base=42  # Seed (change for different maps)
             )  
             noise_grid[y][x] = (noise_value  + 1) / 2
     

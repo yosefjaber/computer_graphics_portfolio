@@ -69,49 +69,43 @@ addGroup(royalty.verts, royalty.idx, [-100,0,0,10,10,10,0,Math.PI/2,0], "Royalty
 
 
 // Make "Planes" (im crine)
-// let dontOpenMasterVerts = []
-// let dontOpenMasterIdx = []
-
-// // First Plane
-// dontOpenMasterVerts.push(dontOpen.verts)
-// dontOpenMasterIdx.push(dontOpen.idx)
-
-// // Second Plane
-// for(vert of dontOpen.verts) {
-//     dontOpenMasterVerts.push(vert)
-// }
-
 addGroup(dontOpen.verts, dontOpen.idx, [600,100,0,10,10,10,0,0,0], "dontOpen")
+addVertsToGroup("dontOpen", dontOpen.verts, dontOpen.idx, 0, -5, 10)
+addVertsToGroup("dontOpen", dontOpen.verts, dontOpen.idx, 0, -5, -10)
 
+// Make second set of planes
+addGroup(dontOpen.verts, dontOpen.idx, [-450,40,0,10,10,10,0,0,0], "dontOpen2")
 
 // When everything is added then upload
 upload();
 
 // Camera Movement
 let eye = [600, 10, 0];
-let lookAtPoint = [-100,305,0];
+let lookAtPoint = [-100,5,0];
 let aLastFrame = 0;
 let deltaTime = 0;
-const dontOpenControlPoints = [[600,40,0], [-150,40,0], [375,300,0], [600,40,0], [-150,40,0]];
+const dontOpenControlPoints  = [[600,40,0], [-300,40,0], [150,300,0], [600,40,0], [-300,40,0]];
+const dontOpenControlPoints2 = [[-200,40,-450], [-200,40,450], [-200,900,0], [-200,40,-450], [-200,40,450]];
 
 function animate_scene(t) {
     const a = t * 0.001;
     deltaTime = a - aLastFrame;
 
-    const s    = (a / 10) % 1;
-    const pos  = BezierCurveN(dontOpenControlPoints, s);
-    const prev = BezierCurveN(dontOpenControlPoints, Math.max(s - 0.001, 0));
-    const next = BezierCurveN(dontOpenControlPoints, Math.min(s + 0.001, 1));
-
-    const dx = next[0] - prev[0];
-    const dy = next[1] - prev[1];
-
-    groups["dontOpen"].inputs[0] = pos[0];
-    groups["dontOpen"].inputs[1] = pos[1];
+    const { pos, rot } = posAndRotCurve(dontOpenControlPoints, a, 2, "z");
+    groups["dontOpen"].inputs[0] = pos[0]; 
+    groups["dontOpen"].inputs[1] = pos[1]; 
     groups["dontOpen"].inputs[2] = pos[2];
-    groups["dontOpen"].inputs[6] = 0;
-    groups["dontOpen"].inputs[7] = 0;
-    groups["dontOpen"].inputs[8] = Math.atan2(-dy, -dx);
+    groups["dontOpen"].inputs[6] = rot[0]; 
+    groups["dontOpen"].inputs[7] = rot[1]; 
+    groups["dontOpen"].inputs[8] = rot[2];
+
+    const { pos: pos2, rot: rot2 } = posAndRotCurve(dontOpenControlPoints2, a, 3, "x");
+    groups["dontOpen2"].inputs[0] = pos2[0];
+    groups["dontOpen2"].inputs[1] = pos2[1];
+    groups["dontOpen2"].inputs[2] = pos2[2];
+    groups["dontOpen2"].inputs[6] = rot2[0];
+    groups["dontOpen2"].inputs[7] = rot2[1];
+    groups["dontOpen2"].inputs[8] = rot2[2];
 
 
     // Piecewise movement

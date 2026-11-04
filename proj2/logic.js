@@ -276,19 +276,26 @@ function BezierCurveN(points, t) {
 }
 
 // returns the position at time a, duration is a constant that will change how fast it moves
-function posAndRotCurve(controlPoints, a, duration) {
-    const s    = (a/duration) % 1;
+// axis = the axis the loop spins around: "z" for XY-plane loops, "x" for YZ, "y" for XZ
+function posAndRotCurve(controlPoints, a, duration, axis = "z") {
+    const s    = (a / duration) % 1;
     const pos  = BezierCurveN(controlPoints, s);
     const prev = BezierCurveN(controlPoints, Math.max(s - 0.001, 0));
     const next = BezierCurveN(controlPoints, Math.min(s + 0.001, 1));
 
-    const x = next[0] - prev[0];
-    const y = next[1] - prev[1];
-    const z = next[2] - prev[2];
-    let rotY = Math.atan2(x, z);
-    let rotX = -Math.atan2(y, Math.hypot(x, z));
+    const dx = next[0] - prev[0];
+    const dy = next[1] - prev[1];
+    const dz = next[2] - prev[2];
 
-    return [pos, rotX, rotY]
+    let rot;
+    if (axis === "z") {            // path in XY plane (your first plane)
+        rot = [0, 0, Math.atan2(-dy, -dx)];
+    } else if (axis === "x") {     // path in YZ plane (your second plane)
+        rot = [Math.PI / 2, -Math.atan2(-dz, -dy), Math.PI / 2];
+    } else {                       // "y": path in XZ plane
+        rot = [0, Math.atan2(dz, -dx), 0];
+    }
+    return { pos, rot };
 }
 
 async function loadPixels(path) {
