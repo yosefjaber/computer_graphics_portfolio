@@ -79,7 +79,7 @@ const attribute_array = [-1,-1,-1, 1,0,0,
 
 
 // Make Floor
-addGroup(attribute_array, index_array, [0,0,0,100,1,100,0,0,0], "Floor")
+addGroup(attribute_array, index_array, [0,0,0,400,1,100,0,0,0], "Floor")
 
 // Make Soliders
 let sv = [];
@@ -91,22 +91,39 @@ const soldiersPerRow = 10;
 
 
 // How many soliders we want
+// Left Side
+let left_sv = []
+let left_si = []
 for(let i = 0; i < 20; i++) {
-    const col = i % soldiersPerRow;
-    const row = Math.floor(i / soldiersPerRow)
     let placed_sv = []
     for(let j = 0; j < solider.verts.length; j+=6) {
-        placed_sv.push(...[solider.verts[j] + solider_offset_x * col, solider.verts[j+1], solider.verts[j+2] + solider_offset_z * row, solider.verts[j+3], solider.verts[j+4], solider.verts[j+5]])
+        placed_sv.push(...[solider.verts[j] + solider_offset_x * i, solider.verts[j+1], solider.verts[j+2], solider.verts[j+3], solider.verts[j+4], solider.verts[j+5]])
     }
-    sv.push(...placed_sv)
+    left_sv.push(...placed_sv)
 
     for (let k = 0; k < solider.idx.length; k++) {
-        si.push(solider.idx[k] + i * (solider.verts.length / 6));
+        left_si.push(solider.idx[k] + i * (solider.verts.length / 6));
     }
 }
-console.log(solider.verts.length / 6);  // vertices per soldier
 
-addGroup(sv, si, [0,0,0,1,1,1,0,0,0], "Soliders");
+addGroup(left_sv, left_si, [0,5,-10,2,2,2,0,0,0], "leftSoliders");
+
+// Right Side
+let right_sv = []
+let right_si = []
+for(let i = 0; i < 20; i++) {
+    let placed_sv = []
+    for(let j = 0; j < solider.verts.length; j+=6) {
+        placed_sv.push(...[solider.verts[j] + solider_offset_x * i, solider.verts[j+1], solider.verts[j+2], solider.verts[j+3], solider.verts[j+4], solider.verts[j+5]])
+    }
+    left_sv.push(...placed_sv)
+
+    for (let k = 0; k < solider.idx.length; k++) {
+        left_si.push(solider.idx[k] + i * (solider.verts.length / 6));
+    }
+}
+
+addGroup(left_sv, left_si, [380,5,10,2,2,2,0,Math.PI,0], "rightSoliders");
 
 
 
@@ -116,11 +133,11 @@ addGroup(royalty.verts, royalty.idx, [-100,0,0,10,10,10,0,Math.PI/2,0], "Royalty
 
 upload();
 
-let eye = [200, 60, -60];
+let eye = [500, 10, 0];
 function animate_scene(t) {
     const a = t * 0.001;
 
-    drawView(lookAt(eye, [0, 0, 0], [0,1,0]));
+    drawView(lookAt([eye[0] - (a*50), eye[1], eye[2]], [-100, 0, 0], [0,1,0]));
     requestAnimationFrame(animate_scene);
 }
 requestAnimationFrame(animate_scene);
