@@ -209,9 +209,9 @@ function parseObj(obj_text) {
             let r = Math.random()
             let g = Math.random()
             let b = Math.random()
-            obj.verts.push(token[1])
-            obj.verts.push(token[2])
-            obj.verts.push(token[3])
+            obj.verts.push(parseFloat(token[1]))
+            obj.verts.push(parseFloat(token[2]))
+            obj.verts.push(parseFloat(token[3]))
             obj.verts.push(r,g,b)
         }
 
