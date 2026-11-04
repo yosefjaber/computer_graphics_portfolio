@@ -297,3 +297,22 @@ async function loadPixels(path) {
     ctx.drawImage(bmp, 0, 0);
     return ctx.getImageData(0, 0, bmp.width, bmp.height);   // { data, width, height }
 }
+
+// Will take in the groupName and the verts and translate the verts by x, y, and z
+function addVertsToGroup(groupName, meshVerts, meshIdx, x, y, z) {
+    const g = groups[groupName];
+    const offset = verts.length / 6;
+
+    for (let k = 0; k < meshVerts.length; k += 6) {
+        verts.push(
+            meshVerts[k] + x, meshVerts[k+1] + y, meshVerts[k+2] + z,
+            meshVerts[k+3], meshVerts[k+4], meshVerts[k+5]
+        );
+    }
+
+    for (let k = 0; k < meshIdx.length; k++) {
+        idx.push(meshIdx[k] + offset);
+    }
+
+    g.count += meshIdx.length;
+}
