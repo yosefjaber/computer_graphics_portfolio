@@ -47,11 +47,11 @@ def generate_perlin_noise(width, height, scale=10.0, octaves=3, persistence=0.5,
                 repeatx=1024, repeaty=1024,  # Tileable noise (optional)
                 base=42  # Seed (change for different maps)
             )  
-            noise_grid[y][x] = (noise_value  + 1) / 2
+            noise_grid[y][x] = (noise_value  + 1) / 2 # Final value will be between 0 and 1
     
     return noise_grid 
 
-if perlin: alpha2 = generate_perlin_noise(width = W, height = H, scale=100, octaves=6).tolist()
+if perlin: alpha2 = generate_perlin_noise(width = W, height = H, scale=120, octaves=3).tolist()
 
 for row in range(H):
     for col in range(W):
@@ -59,9 +59,11 @@ for row in range(H):
         cs = math.cos(((row * col))/1000)
 
         # Should be between 0 - 255
-        red   = (((math.sin(col/100 + row/20) + 1) / 2) * random.random() * 255) * alpha2[row][col]
-        green = (((math.cos(col/151 + row/10) + 1) / 2) * 255) * alpha2[row][col]
-        blue  = (((math.sin(col/4 + row/30) + 1) / 2) * random.random() * 255) * alpha2[row][col]
+
+        red   = 0
+        green = alpha2[row][col] * 255
+        blue  = (1 - alpha2[row][col]) * 255
+
         if perlin: 
             alpha = alpha2[row][col] * 255
         else:

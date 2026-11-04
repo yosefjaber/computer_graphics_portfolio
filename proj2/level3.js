@@ -15,7 +15,7 @@ const attribute_array = [-1,-1,-1, 1,0,0,
   -1, 1, 1, 0.5,0.5,0.5]
 
 // Make Floor
-addGroup(attribute_array, index_array, [0,0,0,400,1,100,0,0,0], "Floor")
+addGroup(attribute_array, index_array, [0,0,0,450,1,100,0,0,0], "Floor")
 
 // Make Soliders
 let sv = [];
@@ -75,17 +75,19 @@ addVertsToGroup("dontOpen", dontOpen.verts, dontOpen.idx, 0, -5, -10)
 
 // Make second set of planes
 addGroup(dontOpen.verts, dontOpen.idx, [-450,40,0,10,10,10,0,0,0], "dontOpen2")
+addVertsToGroup("dontOpen2", dontOpen.verts, dontOpen.idx, 0, -5, 10)
+addVertsToGroup("dontOpen2", dontOpen.verts, dontOpen.idx, 0, -5, -10)
 
 // When everything is added then upload
 upload();
 
 // Camera Movement
 let eye = [600, 10, 0];
-let lookAtPoint = [-100,5,0];
+let lookAtPoint = [-100,10,0];
 let aLastFrame = 0;
 let deltaTime = 0;
 const dontOpenControlPoints  = [[600,40,0], [-300,40,0], [150,300,0], [600,40,0], [-300,40,0]];
-const dontOpenControlPoints2 = [[-200,40,-450], [-200,40,450], [-200,900,0], [-200,40,-450], [-200,40,450]];
+const dontOpenControlPoints2 = [[-400,40,-450], [-400,40,450], [-400,900,0], [-400,40,-450], [-400,40,450]];
 
 function animate_scene(t) {
     const a = t * 0.001;
@@ -109,16 +111,19 @@ function animate_scene(t) {
 
 
     // Piecewise movement
-    // First 11 seconds
-    if (a < 12.2) {
+    // First 12 seconds
+    if (a < 13) {
         eye[0] -= deltaTime * 50
         drawView(lookAt(eye, lookAtPoint, [0,1,0]));
     }
-    else if(a < 14.2) {
+    else if (a < 16) {
         drawView(lookAt(eye, lookAtPoint, [0,1,0]));
     }
-    else if (a < 18.2) {
-        lookAtPoint[1] += (0.05) * (a-13)
+    else if (a < 20) {
+        lookAtPoint[1] += (25) * (deltaTime/4)
+        drawView(lookAt(eye, lookAtPoint, [0,1,0]));
+    }
+    else {
         drawView(lookAt(eye, lookAtPoint, [0,1,0]));
     }
 
