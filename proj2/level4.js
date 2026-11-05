@@ -167,11 +167,11 @@ addVertsToGroup("dontOpen2", dontOpen.verts, dontOpen.idx, 0, -5, -10)
 upload();
 
 // Camera Movement
-let eye = [600, 10, 0];
+let eye = [400, 10, 0];
 let lookAtPoint = [-100,10,0];
 let aLastFrame = 0;
 let deltaTime = 0;
-const dontOpenControlPoints  = [[600,40,0], [-300,40,0], [150,300,0], [600,40,0], [-300,40,0]];
+const dontOpenControlPoints  = [[600,40,0], [-300,40,0], [150,1000,0], [600,40,0], [-300,40,0]];
 const dontOpenControlPoints2 = [[-400,40,-450], [-400,40,450], [-400,900,0], [-400,40,-450], [-400,40,450]];
 
 const keysHeld = new Set();
@@ -226,8 +226,8 @@ function animate_scene(t) {
     if (keysHeld.has("KeyS")) { eye[0] -= fx * step; eye[2] -= fz * step; }
     if (keysHeld.has("KeyD")) { eye[0] += rx * step; eye[2] += rz * step; }
     if (keysHeld.has("KeyA")) { eye[0] -= rx * step; eye[2] -= rz * step; }
-    if (keysHeld.has("KeyQ")) { eye[1] -= 10 * step; }
-    if (keysHeld.has("KeyE")) { eye[1] += 10 * step; }
+    if (keysHeld.has("KeyQ")) { eye[1] -= step; }
+    if (keysHeld.has("KeyE")) { eye[1] += step; }
 
     lookAtPoint = [
         eye[0] + Math.cos(pitch) * Math.cos(yaw),

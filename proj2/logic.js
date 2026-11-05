@@ -1,10 +1,7 @@
 // gl is the handle to the GPU
 const gl = document.getElementById("c").getContext("webgl2");
-gl.getExtension("OES_element_index_uint");
 
 // Vertex Shader runs once per vertex
-// attribute aPos - an attribute is different for every vertex 
-//    this attribute is 
 const vs = `
     attribute vec3 aPos;
     attribute vec3 aCol;
@@ -42,11 +39,9 @@ gl.linkProgram(prog);
 gl.useProgram(prog);
 
 
-// x, y, z, r, g, b
-// First three points are the position last three points are the color
-const verts = []
-const idx = [] // Keeps track of what indecies for a triangle 
 const groups = {}
+const idx = []
+const verts = []
 
 // add_mesh will add a new mesh to our scene by adding to the verts and idx
 function addMesh(meshVerts, meshIdx) {
@@ -72,7 +67,8 @@ function multiply(a, b) {   // a * b, row-major
 }
 
 function perspective(fov, aspect, near, far) {
-    const f = 1 / Math.tan(fov / 2), nf = 1 / (near - far);
+    const f = 1 / Math.tan(fov / 2)
+    const nf = 1 / (near - far);
     return [
         f/aspect, 0, 0,               0,
         0,        f, 0,               0,
@@ -174,7 +170,7 @@ function buildModel(x, y, z, sx, sy, sz, rotX, rotY, rotZ) {
 
 function drawView(view) {
     const c = document.getElementById("c");
-    const proj = perspective(Math.PI/3, c.width / c.height, 1, 100000);
+    const proj = perspective(Math.PI/2, c.width / c.height, 1, 100000);
     const projView = multiply(proj, view);
 
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
