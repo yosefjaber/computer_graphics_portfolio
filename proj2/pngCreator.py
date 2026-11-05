@@ -51,7 +51,7 @@ def generate_perlin_noise(width, height, scale=10.0, octaves=3, persistence=0.5,
     
     return noise_grid 
 
-if perlin: alpha2 = generate_perlin_noise(width = W, height = H, scale=200, octaves=2).tolist()
+if perlin: alpha2 = generate_perlin_noise(width = W, height = H, scale=80, octaves=4).tolist()
 
 snow_start = 0.65
 mid_point = (0.4)
@@ -64,10 +64,24 @@ GRASS   = (40, 160, 60)
 ROCK    = (120, 110, 100)
 SNOW    = (255, 255, 255)
 
+FLAT_HEIGHT = 0.5    # 0..1, 0.5 = halfway between bottom and top
+FLAT_RADIUS = 200    # pixels, fully flat area
+BLEND       = 60     # pixels, smooth slope from flat back to terrain
+
+def flatten(a, row, col):
+    d = math.hypot(col - W / 2, row - H / 2)   # distance from the center
+    if d <= FLAT_RADIUS:
+        return FLAT_HEIGHT
+    if d >= FLAT_RADIUS + BLEND:
+        return a
+    t = (d - FLAT_RADIUS) / BLEND
+    t = t * t * (3 - 2 * t)                    # smoothstep so there's no sharp cliff
+    return FLAT_HEIGHT + (a - FLAT_HEIGHT) * t
+
 for row in range(H):
     for col in range(W):
 
-        a = alpha2[row][col]   # must be 0..1
+        a = flatten(alpha2[row][col], row, col)
 
         if a > snow_start:
             red, green, blue = SNOW
@@ -79,8 +93,8 @@ for row in range(H):
             red, green, blue = lerp(DEEP, SHALLOW, t)
 
 
-        if perlin: 
-            alpha = alpha2[row][col] * 255
+        if perlin:
+            alpha = a * 255                        # <-- was alpha2[row][col] * 255
         else:
             alpha = (255/4) * ((math.cos((col - H/2) / 50) + 1) + (math.cos((row - W/2) / 50) + 1)) + 3
 

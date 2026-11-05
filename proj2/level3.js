@@ -16,46 +16,91 @@ const attribute_array = [-1,-1,-1, 1,0,0,
 
 // Make Floor
 
-
 const img = await loadPixels("output.png");
 console.log(img.width, img.height);
 
-const red = img.data[(10 * img.width + 5) * 4];   // red value of pixel (5, 10)
+const W = img.width;
+const H = img.height;
 
-let col = img.width;
-let row = img.height;
-let rOffset = 3
-let cOffset = 3
+const rOffset = 3;          // spacing between pixel rows (z)
+const cOffset = 3;          // spacing between pixel columns (x)
+const heightScale = 1000;    // alpha (0-1) * this = terrain height
 
-let master_attribute_array = []
-let master_index_array = []
+const master_attribute_array = [];
+const master_index_array = [];
 
-for(let r = 0; r < img.height; r++) {
-    for(let c = 0; c < img.width; c++) {
+// ---- top surface: one vertex per pixel (x, y, z, r, g, b) ----
+for (let r = 0; r < H; r++) {
+  for (let c = 0; c < W; c++) {
+    const i = (r * W + c) * 4;
 
-        // Must be between 0 - 1
-        let red = img.data[((r * img.width + c) * 4)] / 255;
-        let green = img.data[((r * img.width + c) * 4) + 1] / 255;
-        let blue = img.data[((r * img.width + c) * 4) + 2] / 255;
+    const red   = img.data[i]     / 255;
+    const green = img.data[i + 1] / 255;
+    const blue  = img.data[i + 2] / 255;
+    const height = (img.data[i + 3] / 255) * heightScale;
 
-        // Can be anything run wild
-        let alpha = ((img.data[(r * img.width + c) * 4 + 3]) / 255) * 1000;
-
-        master_attribute_array.push(...[
-            -1 + (c * cOffset),  alpha - 1, -1 + (r * rOffset), red, green, blue,
-             1 + (c * cOffset),  alpha - 1, -1 + (r * rOffset), red, green, blue,
-             1 + (c * cOffset),  alpha    , -1 + (r * rOffset), red, green, blue,
-            -1 + (c * cOffset),  alpha    , -1 + (r * rOffset), red, green, blue,
-            -1 + (c * cOffset),  alpha - 1,  1 + (r * rOffset), red, green, blue,
-             1 + (c * cOffset),  alpha - 1,  1 + (r * rOffset), red, green, blue,
-             1 + (c * cOffset),  alpha    ,  1 + (r * rOffset), red, green, blue,
-            -1 + (c * cOffset),  alpha    ,  1 + (r * rOffset), red, green, blue,
-        ])
-
-        master_index_array.push(...index_array.map(n => n + master_attribute_array.length/6 - 8))
-    }
+    master_attribute_array.push(c * cOffset, height, r * rOffset, red, green, blue);
+  }
 }
-addGroup(master_attribute_array, master_index_array, [150,-400,-150,1,1,1,0,0,0], "floor")
+
+// two triangles per grid cell (faces up)
+for (let r = 0; r < H - 1; r++) {
+  for (let c = 0; c < W - 1; c++) {
+    const i00 = r * W + c;
+    const i10 = i00 + 1;
+    const i01 = i00 + W;
+    const i11 = i01 + 1;
+
+    master_index_array.push(
+      i00, i01, i11,
+      i00, i11, i10
+    );
+  }
+}
+
+// ---- bottom face (faces down) ----
+const X = (W - 1) * cOffset;
+const Z = (H - 1) * rOffset;
+
+const offsetIdx = master_attribute_array.length / 6;
+master_attribute_array.push(
+  0, 0, 0,  0.25, 0.25, 0.25,   // +0 front-left
+  X, 0, 0,  0.25, 0.25, 0.25,   // +1 front-right
+  0, 0, Z,  0.25, 0.25, 0.25,   // +2 back-left
+  X, 0, Z,  0.25, 0.25, 0.25    // +3 back-right
+);
+master_index_array.push(
+  offsetIdx,     offsetIdx + 1, offsetIdx + 2,
+  offsetIdx + 1, offsetIdx + 3, offsetIdx + 2
+);
+
+// ---- walls ----
+function addWall(topIdx, flip) {
+  // flat-bottom copy of each edge vertex (same x/z, y = 0)
+  const bot = topIdx.map(t => {
+    const x = master_attribute_array[t * 6];
+    const z = master_attribute_array[t * 6 + 2];
+    master_attribute_array.push(x, 0, z, 0.2, 0.2, 0.2);
+    return master_attribute_array.length / 6 - 1;
+  });
+
+  for (let k = 0; k < topIdx.length - 1; k++) {
+    const a = topIdx[k], b = topIdx[k + 1];
+    const d = bot[k],    e = bot[k + 1];
+    if (!flip) master_index_array.push(a, b, e,  a, e, d);
+    else       master_index_array.push(a, e, b,  a, d, e);
+  }
+}
+
+const range = n => Array.from({ length: n }, (_, k) => k);
+
+addWall(range(W),                              false); // front (r = 0)
+addWall(range(W).map(c => (H - 1) * W + c),    true);  // back  (r = H-1)
+addWall(range(H).map(r => r * W),              true);  // left  (c = 0)
+addWall(range(H).map(r => r * W + (W - 1)),    false); // right (c = W-1)
+
+addGroup(master_attribute_array, master_index_array, [-450, -199, -600, .4,.4,.4, 0,0,0], "terrain");
+
 
 // Make Soliders
 let sv = [];
