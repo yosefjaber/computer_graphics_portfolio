@@ -10,12 +10,14 @@ let cOffset = 3
 
 let master_attribute_array = []
 let master_index_array = []
-let index_array =  [4,5,6, 4,6,7,
+let index_array =  [
+  4,5,6, 4,6,7,
   0,3,2, 0,2,1,
   3,7,6, 3,6,2,
   0,1,5, 0,5,4,
   1,2,6, 1,6,5,
-  0,4,7, 0,7,3,]
+  0,4,7, 0,7,3,
+]
 
 for(let r = 0; r < img.height; r++) {
     for(let c = 0; c < img.width; c++) {

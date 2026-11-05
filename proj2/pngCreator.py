@@ -51,18 +51,33 @@ def generate_perlin_noise(width, height, scale=10.0, octaves=3, persistence=0.5,
     
     return noise_grid 
 
-if perlin: alpha2 = generate_perlin_noise(width = W, height = H, scale=120, octaves=3).tolist()
+if perlin: alpha2 = generate_perlin_noise(width = W, height = H, scale=200, octaves=2).tolist()
+
+snow_start = 0.65
+mid_point = (0.4)
+def lerp(c1, c2, t):
+    return tuple(int(c1[i] + (c2[i] - c1[i]) * t) for i in range(3))
+
+DEEP    = (0, 30, 140)
+SHALLOW = (0, 140, 220)
+GRASS   = (40, 160, 60)
+ROCK    = (120, 110, 100)
+SNOW    = (255, 255, 255)
 
 for row in range(H):
     for col in range(W):
 
-        cs = math.cos(((row * col))/1000)
+        a = alpha2[row][col]   # must be 0..1
 
-        # Should be between 0 - 255
+        if a > snow_start:
+            red, green, blue = SNOW
+        elif a > mid_point:
+            t = (a - mid_point) / (snow_start - mid_point)   # 0 at mid_point, 1 at snow_start
+            red, green, blue = lerp(GRASS, ROCK, t)
+        else:
+            t = a / mid_point                                # 0 at bottom, 1 at mid_point
+            red, green, blue = lerp(DEEP, SHALLOW, t)
 
-        red   = 0
-        green = alpha2[row][col] * 255
-        blue  = (1 - alpha2[row][col]) * 255
 
         if perlin: 
             alpha = alpha2[row][col] * 255

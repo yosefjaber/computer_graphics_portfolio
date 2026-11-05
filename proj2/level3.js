@@ -15,15 +15,55 @@ const attribute_array = [-1,-1,-1, 1,0,0,
   -1, 1, 1, 0.5,0.5,0.5]
 
 // Make Floor
-addGroup(attribute_array, index_array, [0,0,0,450,1,100,0,0,0], "Floor")
+
+
+const img = await loadPixels("output.png");
+console.log(img.width, img.height);
+
+const red = img.data[(10 * img.width + 5) * 4];   // red value of pixel (5, 10)
+
+let col = img.width;
+let row = img.height;
+let rOffset = 3
+let cOffset = 3
+
+let master_attribute_array = []
+let master_index_array = []
+
+for(let r = 0; r < img.height; r++) {
+    for(let c = 0; c < img.width; c++) {
+
+        // Must be between 0 - 1
+        let red = img.data[((r * img.width + c) * 4)] / 255;
+        let green = img.data[((r * img.width + c) * 4) + 1] / 255;
+        let blue = img.data[((r * img.width + c) * 4) + 2] / 255;
+
+        // Can be anything run wild
+        let alpha = ((img.data[(r * img.width + c) * 4 + 3]) / 255) * 1000;
+
+        master_attribute_array.push(...[
+            -1 + (c * cOffset),  alpha - 1, -1 + (r * rOffset), red, green, blue,
+             1 + (c * cOffset),  alpha - 1, -1 + (r * rOffset), red, green, blue,
+             1 + (c * cOffset),  alpha    , -1 + (r * rOffset), red, green, blue,
+            -1 + (c * cOffset),  alpha    , -1 + (r * rOffset), red, green, blue,
+            -1 + (c * cOffset),  alpha - 1,  1 + (r * rOffset), red, green, blue,
+             1 + (c * cOffset),  alpha - 1,  1 + (r * rOffset), red, green, blue,
+             1 + (c * cOffset),  alpha    ,  1 + (r * rOffset), red, green, blue,
+            -1 + (c * cOffset),  alpha    ,  1 + (r * rOffset), red, green, blue,
+        ])
+
+        master_index_array.push(...index_array.map(n => n + master_attribute_array.length/6 - 8))
+    }
+}
+addGroup(master_attribute_array, master_index_array, [150,-400,-150,1,1,1,0,0,0], "floor")
 
 // Make Soliders
 let sv = [];
 let si = [];
 
-const solider_offset_x = 10;   // spacing between soldiers in a row
-const solider_offset_z = 10;   // distance between the two rows
-const soldiersPerRow = 10;
+const solider_offset_x = 10;
+const solider_offset_z = 10;
+
 
 
 // How many soliders we want
@@ -101,7 +141,7 @@ function animate_scene(t) {
     groups["dontOpen"].inputs[7] = rot[1]; 
     groups["dontOpen"].inputs[8] = rot[2];
 
-    const { pos: pos2, rot: rot2 } = posAndRotCurve(dontOpenControlPoints2, a, 3, "x");
+    const { pos: pos2, rot: rot2 } = posAndRotCurve(dontOpenControlPoints2, a, 1, "x");
     groups["dontOpen2"].inputs[0] = pos2[0];
     groups["dontOpen2"].inputs[1] = pos2[1];
     groups["dontOpen2"].inputs[2] = pos2[2];
