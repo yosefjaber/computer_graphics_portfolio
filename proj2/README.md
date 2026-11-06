@@ -2,9 +2,6 @@
 
 ## Video Demo
 
-<video src="pics/demo.mp4" controls width="600"></video>
-
-
 https://github.com/user-attachments/assets/3905f03b-a267-420e-a2a6-677328f02c99
 
 
@@ -223,9 +220,5 @@ If I was given more time I would probably used a formate other than .obj to give
 ## AI Policy
 
 I used AI for helping me with generating the `perspective` and `lookAt` matrices and understanding how they work. I also used it for help with level 4 movement. 
-
-### Objects
-
-The complex objects were made by first making them in blender and then exporting them as object files. I then parse the object file with the `parseObj` function.
 
 
