@@ -91,10 +91,54 @@ function perspective(fov, aspect, near, far) {
 
 ### The Projection Matrix
 
-The `perspective()` function takes in an `fov` in radians, the `aspect` ratio of the canvas, and the `near` and `far` values. It will then calculate a standard perspective matrix.
+### Perspective
+
+The `perspective()` function takes in an `fov` in radians, the `aspect` ratio of the canvas, and the `near` and `far` values. It will then calculate a standard perspective matrix. This is how the code looks: 
+
+```js
+function perspective(fov, aspect, near, far) {
+    const f = 1 / Math.tan(fov / 2)
+    const nf = 1 / (near - far);
+    return [
+        f/aspect, 0, 0,               0,
+        0,        f, 0,               0,
+        0,        0, (far+near)*nf,   2*far*near*nf,
+        0,        0, -1,              0,
+    ];
+}
+```
 
 The matrix that is returned will scale x and y by `f` (x is also divided by `aspect`), and its bottom row copies `-z` into `w`. After the vertex shader, the GPU divides by `w`, which is the same as dividing by -z, to complete their perspective calculations into the range [-1, 1]. Z will have to map all values from [near, far] to [-1, 1]. This is done with the 3rd row by multiplying z by `(far+near)*nf` and then adding it to `2*far*near*nf`. After the divide by `w`, `near` ends up at -1 and `far` ends up at 1.
 
 ### LookAt
+
+The `lookAt()` function will take in the world coordinates and given the coordinates of the eye (camera), the coordinates of the target (what to look at), and the coordinates of the up position of the camera. It will then translate the world coordinates into the coordinates relative to the camera (view coordinates). It works by first moving the camera (along with everthing else to 0,0,0) then running a change of bases from the world coordinates to the camera coordintes. This is how the code looks:
+
+```js
+function normalize(v) { const l = Math.hypot(...v); return v.map(a => a / l); }
+function cross(a, b) { return [a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0]]; }
+function dot(a, b)   { return a[0]*b[0] + a[1]*b[1] + a[2]*b[2]; }
+
+function lookAt(eye, target, up) {
+    const f = normalize([target[0]-eye[0], target[1]-eye[1], target[2]-eye[2]]); // forward vector of camera
+    const s = normalize(cross(f, up));                                           // right vector of camera
+    const u = cross(s, f);                                                       // true up vector of camera
+    return [
+         s[0],  s[1],  s[2], -dot(s, eye),
+         u[0],  u[1],  u[2], -dot(u, eye),
+        -f[0], -f[1], -f[2],  dot(f, eye),
+         0,     0,     0,     1,
+    ];
+}
+```
+
+`f` is the forward unit vector of the camera. It works by simply subtracting the eye from the target. 
+
+Then `s` is the right vector which is done by taking the cross product of the forward and up vectors which will return the vector orthagonal to both of them:
+![alt text](image.png)
+
+Then `u` is the true up vector of the camera. It also uses the cross product trick to get the vector that is orthogonal to forward and right, which will be the up vector of the camera.
+
+You then build the matrix by having the first row be the x, y, and z coordinates of the right vector. This will dot the right vector with the point we are passing through. That is essentially saying how much the point extends along the right vector. A value of 1 means that the point fits one unit of the right vector in it. A value of 0.5 means that the point fits half a unit of the right vector in it. This is how many units of right are in our point. We then do this trick for up and backward (the third row uses `-f`, since the camera looks down -Z). This will move the x, y, z coordinates into right, up, and backward coordinates. The last column moves the camera to (0, 0, 0) and brings all of the other points with it.
 
 
