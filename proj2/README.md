@@ -1,6 +1,8 @@
-# CUBE WORLD!!!!!!!
+# Yosef Jaber's Fun Amazing Cube World
 
-This project uses WebGL
+## Video Demo
+
+<video src="pics/demo.mp4" controls width="600"></video>
 
 ## Documentation
 
@@ -68,7 +70,7 @@ function drawView(view) {
 }
 ```
 
-This function takes in a view matrix and uses it to build `projView` the projection matrix multiplied by the view matrix (click here to learn how the projection matrix works). It then loops through every group and draws them one at a time. For each group it first builds the model-view-projection (MVP) matrix by combining that group’s model matrix with `projView`. This matrix is uploaded to the vertex shader’s matrix uniform, and it is re-uploaded for every group because each group has its own model matrix.
+This function takes in a view matrix and uses it to build `projView` the projection matrix multiplied by the view matrix (<a href="#the-projection-matrix">click here</a> to learn how the projection matrix works). It then loops through every group and draws them one at a time. For each group it first builds the model-view-projection (MVP) matrix by combining that group’s model matrix with `projView`. This matrix is uploaded to the vertex shader’s matrix uniform, and it is re-uploaded for every group because each group has its own model matrix.
 
 Next, we draw the group’s indices in chunks of up to 3 million. If a group has fewer than 3 million indices this takes a single draw call. If it has more it takes multiple draw calls. The reason is that the WebGL spec doesn’t set a hard limit on index count but in my testing the scene would not load when I tried to draw more than 3 million indices in a single call.
 
@@ -135,10 +137,85 @@ function lookAt(eye, target, up) {
 `f` is the forward unit vector of the camera. It works by simply subtracting the eye from the target. 
 
 Then `s` is the right vector which is done by taking the cross product of the forward and up vectors which will return the vector orthagonal to both of them:
+
 ![alt text](image.png)
 
 Then `u` is the true up vector of the camera. It also uses the cross product trick to get the vector that is orthogonal to forward and right, which will be the up vector of the camera.
 
 You then build the matrix by having the first row be the x, y, and z coordinates of the right vector. This will dot the right vector with the point we are passing through. That is essentially saying how much the point extends along the right vector. A value of 1 means that the point fits one unit of the right vector in it. A value of 0.5 means that the point fits half a unit of the right vector in it. This is how many units of right are in our point. We then do this trick for up and backward (the third row uses `-f`, since the camera looks down -Z). This will move the x, y, z coordinates into right, up, and backward coordinates. The last column moves the camera to (0, 0, 0) and brings all of the other points with it.
 
+## Blender Models
+
+The `objParse()` function takes in a .obj text file and then parses the text to return a js object called `obj` this has two members `obj.verts` and `obj.idx` which are arrays that can work with our `addGroup()` function to make a group that represents that .obj file. For this entire project I have created three blender files that are located in the /blender folder. The three are:
+
+plane.blend (the fur isnt rendered in a .obj file):
+
+![alt text](pics/image-1.png)
+
+queenSuzanne.blend:
+
+![alt text](pics/image-2.png)
+
+suzanneSolider.blend:
+
+![alt text](pics/image-3.png)
+
+## Bezier Curves
+
+Bezier curves are implemented with the `BezierCurveN()` function. This is a recursive function that takes in an array of arrays where each element is an array representing an x y z coordinate (example: `[0, 1, 2]`). Each of these arrays represents one control point. The function also takes in a `t` from 0 to 1 and returns an array representing the x y z coordinate of the Bezier curve at `t`. The code looks like this:
+
+```js
+function BezierCurveN(points, t) {
+    // base case
+    if (points.length <= 1) {
+        return points[0]
+    }
+
+    let new_points = []
+
+    for (let i = 0; i < points.length - 1; i++) {
+        new_points.push(lerp(points[i], points[i + 1], t))
+    }
+
+    return BezierCurveN(new_points, t)
+}
+```
+
+The base case ends the function if there is only one control point left. That point is the final point on the curve at `t`.
+
+If there is more than one point we loop through every neighboring pair of control points and `lerp` between them by `t`. This creates a new array that is one point shorter than the one we started with. For example 5 control points become 4 and then 3 and then 2 and then 1. We then call the function again with the smaller array and the same `t`. Once a single point remains it is returned all the way back up through the recursion.
+
+## Level Creation
+
+### Level 0
+
+Level 0 is very simple scene where we make a group with the `royalty.blend` verts and idx and has the camera rotate around the origin with sin and cos functions to represent the x and z values of the camera. The y value is a tan function which creates the cool effect of the camera going in and out close to the object. 
+
+### Level 1
+
+Level 1 is a group of a grid of cubes that has been given random y positions. They have also been given random colors for each vertex.
+
+### Level 2
+
+I read in a image `output.png` and map the r,g,b values of the pixel to a cube. I then use the alpha value for the y position. `output.png` has been created with a python script `pngCreator.png` which uses perlin noise. I used this [article](https://www.py4u.org/blog/python-random-map-generation-with-perlin-noise/) to help me out with that. 
+
+### Level 3
+
+This creates a scene by having 5 groups, one group is `terrain`, another is `suzanneSolider`, another is `queenSuzanne`, and the last two are the two "planes" which move in a loop defined by a bezier curve.
+
+### Level 4
+
+This is just level 3 but you can move around with W A S D to move around. The arrow keys to look around, and Q and E to go up and down. 
+
+## Scene Sketch 
+
+![alt text](pics/image-4.png)
+
+## Future Work 
+
+If I was given more time I would probably used a formate other than .obj to give the models color istead of it just being random. I would also make a skybox so that the scene background is not just black.
+
+## AI Policy
+
+I used AI for helping me with generating the `perspective` and `lookAt` matrices and understanding how they work. I also used it for help with level 4 movement. 
 

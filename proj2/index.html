@@ -1,4 +1,67 @@
 <canvas id="c" width="1000" height="1000"></canvas>
+
+<div>
+    <button onclick="level = 0; change()">Level 0</button>
+    <button onclick="level = 1; change()">Level 1</button>
+    <button onclick="level = 2; change()">Level 2</button>
+    <button onclick="level = 3; change()">Level 3</button>
+    <button onclick="level = 4; change()">Level 4</button>
+</div>
+
+<h1>Yosef Jaber's Fun Amazing Cube World</h1>
+<h2 id="title">Level 0</h2>
+<p id="info"></p>
+
 <script src="logic.js"></script>
 <script src="objParser.js"></script>
-<script type="module" src="level4.js"></script>
+<img
+  src="/output.png"
+  id="img"
+/>
+
+<script>
+// read the sticky note (if there is no note yet use 0)
+let level = Number(sessionStorage.getItem("level")) || 0
+
+// write the sticky note then reload the page
+function change() {
+    sessionStorage.setItem("level", level)
+    location.reload()
+}
+
+// your same function (the reload() line is gone)
+function show() {
+    const title = document.getElementById("title")
+    const info = document.getElementById("info")
+    const img = document.getElementById("img")
+
+    if (level === 0) {
+        title.textContent = "Level 0"
+        info.textContent = "Used a throne instead of a cube for this level"
+        img.hidden = true
+        import("./level0.js")
+    } else if (level === 1) {
+        title.textContent = "Level 1"
+        info.textContent = "Random y position of the cubes"
+        img.hidden = true
+        import("./level1.js")
+    } else if (level === 2) {
+        title.textContent = "Level 2"
+        info.textContent = "Playing around with perlin noise, I have show the output.png below"
+        img.hidden = false
+        import("./level2.js")
+    } else if (level === 3) {
+        title.textContent = "Level 3"
+        info.textContent = "Cool scene with bezier curves"
+        img.hidden = false
+        import("./level3.js")
+    } else if (level === 4) {
+        title.textContent = "Level 4"
+        info.textContent = "Level 3 scene but I have added a way to move around. W,A,S,D to move, arrows to look around, and Q,E to move up and down"
+        img.hidden = false
+        import("./level4.js")
+    }
+}
+
+show()
+</script>
