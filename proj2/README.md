@@ -142,3 +142,8 @@ Then `u` is the true up vector of the camera. It also uses the cross product tri
 You then build the matrix by having the first row be the x, y, and z coordinates of the right vector. This will dot the right vector with the point we are passing through. That is essentially saying how much the point extends along the right vector. A value of 1 means that the point fits one unit of the right vector in it. A value of 0.5 means that the point fits half a unit of the right vector in it. This is how many units of right are in our point. We then do this trick for up and backward (the third row uses `-f`, since the camera looks down -Z). This will move the x, y, z coordinates into right, up, and backward coordinates. The last column moves the camera to (0, 0, 0) and brings all of the other points with it.
 
 
+### Objects
+
+The complex objects were made by first making them in blender and then exporting them as object files. I then parse the object file with the `parseObj` function.
+
+
