@@ -139,7 +139,7 @@ function setRotation(rx, ry, rz) {
 }
 
 // Do all the rendering shenanigans in one function 
-function upload() {   // call once, after all addCube calls
+function upload() {
   gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(verts), gl.STATIC_DRAW);
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gl.createBuffer());
