@@ -4,7 +4,7 @@
 
 https://github.com/user-attachments/assets/3905f03b-a267-420e-a2a6-677328f02c99
 
-
+[**HOSTED WEBSITE**](https://graphics.csquad.xyz/proj2)
 
 ## Documentation
 
